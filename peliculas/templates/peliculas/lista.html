@@ -1,0 +1,79 @@
+{% extends 'peliculas/base.html' %}
+{% load static %}
+
+{% block title %}Películas{% endblock %}
+
+{% block content %}
+<div class="dropdown mb-4">
+  <button class="btn btn-danger dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+    {% if genero_actual %}
+      Género: {{ genero_actual|title }}
+    {% else %}
+      Filtrar por género
+    {% endif %}
+  </button>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="?">🎬 Todos</a></li>
+    <li><a class="dropdown-item" href="?genero=accion">🔫 Acción</a></li>
+    <li><a class="dropdown-item" href="?genero=comedia">😂 Comedia</a></li>
+    <li><a class="dropdown-item" href="?genero=drama">🎭 Drama</a></li>
+    <li><a class="dropdown-item" href="?genero=terror">👻 Terror</a></li>
+    <li><a class="dropdown-item" href="?genero=romance">❤️ Romance</a></li>
+  </ul>
+</div>
+
+{% if peliculas %}
+  <div class="row">
+    {% for pelicula in peliculas %}
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          {% if pelicula.imagen %}
+            <img src="{{ pelicula.imagen.url }}" class="card-img-top" alt="{{ pelicula.titulo }}">
+          {% else %}
+            <img src="{% static 'img/no-image.png' %}" class="card-img-top" alt="Sin imagen">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ pelicula.titulo }}</h5>
+            <p class="card-text"><strong>Género:</strong> {{ pelicula.get_genero_display }}</p>
+            <a href="{% url 'detalle_pelicula' pelicula.id %}" class="btn btn-primary btn-sm">Ver más</a>
+
+            {% if request.user.is_staff %}
+              <a href="{% url 'editar_pelicula' pelicula.id %}" class="btn btn-warning btn-sm">Editar</a>
+
+              <!-- Botón que abre el modal -->
+              <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmarEliminarPelicula{{ pelicula.id }}">
+                Eliminar
+              </button>
+
+              <!-- Modal de confirmación -->
+              <div class="modal fade" id="confirmarEliminarPelicula{{ pelicula.id }}" tabindex="-1" aria-labelledby="modalLabelPelicula{{ pelicula.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content bg-dark text-white">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="modalLabelPelicula{{ pelicula.id }}">Confirmar eliminación</h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                      ¿Estás seguro de que deseas eliminar la película <strong>{{ pelicula.titulo }}</strong>?  
+                      Esta acción no se puede deshacer.
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                      <a href="{% url 'eliminar_pelicula' pelicula.id %}" class="btn btn-danger">Eliminar</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-warning text-center">
+    No hay películas en el género seleccionado.
+  </div>
+{% endif %}
+</div>
+{% endblock %}

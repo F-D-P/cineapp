@@ -1,0 +1,33 @@
+{% extends "peliculas/base.html" %}
+{% block content %}
+<div class="container mt-5 text-center" data-aos="fade-up">
+  <h2 class="text-success fw-bold">
+    <i class="fas fa-check-circle"></i> ¡Pago exitoso!
+  </h2>
+  <p class="lead">Tu reserva <strong>#{{ reserva.id }}</strong> fue confirmada correctamente.</p>
+
+  <div class="card mt-4 p-4 shadow-lg bg-light text-dark">
+    <h4 class="fw-bold">{{ reserva.funcion.pelicula.titulo }}</h4>
+    <p><i class="fas fa-calendar-alt"></i> <strong>Función:</strong> {{ reserva.funcion.fecha|date:"d/m/Y" }} - {{ reserva.funcion.hora|time:"H:i" }}</p>
+    <p><i class="fas fa-chair"></i> <strong>Asientos:</strong> {{ reserva.lista_asientos }}</p>
+    <p><i class="fas fa-users"></i> <strong>Cantidad:</strong> {{ reserva.cantidad }}</p>
+    <p><i class="fas fa-info-circle"></i> <strong>Estado:</strong> {{ reserva.estado|title }}</p>
+
+    {% if reserva.qr_code %}
+      <div class="mt-4">
+        <p class="fw-semibold">Presenta este código QR en la entrada:</p>
+        <img src="{{ reserva.qr_code.url }}" alt="QR de la reserva" class="img-fluid rounded shadow" style="max-width:250px;">
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="d-grid gap-3 mt-5">
+    <a href="{% url 'mis_reservas' %}" class="btn btn-outline-success btn-lg">
+      <i class="fas fa-ticket-alt"></i> Ver mis reservas
+    </a>
+    <a href="{% url 'catalogo' %}" class="btn btn-outline-secondary btn-lg">
+      <i class="fas fa-film"></i> Volver al catálogo
+    </a>
+  </div>
+</div>
+{% endblock %}

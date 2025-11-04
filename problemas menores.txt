@@ -1,0 +1,59 @@
+🛠️ Problemas a solucionar más adelante (no bloqueantes)
+
+Menú hamburguesa (offcanvas)
+- [ ] El cliente necesita doble click para cerrar el menú por completo. Ajustar para que se cierre con un solo click fuera.
+- [ ] El botón de “Configuración” dentro del menú hamburguesa solo abre el panel, pero no lo cierra si se vuelve a hacer click. Ajustar para que abra y cierre con un solo click.
+
+Inicio de sesión con Google
+- [ ] Agregar botón para iniciar sesión y crear cuenta con Google, además del login tradicional.
+
+Cards en Catálogo y Próximamente
+- [ ] Agrandar el tamaño de las tarjetas de películas en esas secciones para que sean iguales a las del “Top 5”.
+
+Ranking Top 5
+- [ ] Añadir un indicador visual tipo “Top 1”, “Top 2”, etc., para que el usuario identifique fácilmente la posición de cada película.
+
+Panel de salas y funciones
+- [ ] Validar que no se puedan asignar funciones superpuestas en la misma sala (conflicto de horarios).
+- [ ] Mostrar métricas por sala: ocupación promedio, funciones por semana, ingresos estimados.
+- [ ] Agregar vista tipo calendario para visualizar funciones por sala y día.
+- [ ] Mostrar funciones asignadas por sala en el panel de administración.
+- [ ] Permitir crear nuevas salas desde el panel admin con validación de nombre único y capacidad mínima.
+- [ ] Mostrar mensaje si no hay salas activas al intentar crear una función.
+
+Método de pago con Mercado Pago
+- [ ] Añadir botón de “Pagar con Mercado Pago” en la vista de confirmación de compra.
+- [ ] Integrar el SDK de Mercado Pago (preferentemente Checkout Pro o Checkout Bricks).
+- [ ] Crear vista de callback para recibir la respuesta del pago (éxito, pendiente, error).
+- [ ] Validar que el pago esté aprobado antes de confirmar la reserva.
+- [ ] Mostrar feedback visual claro al usuario según el estado del pago.
+
+
+
+
+
+
+
+
+📝 Checklist de pruebas como cliente
+🍔 Menú hamburguesa (offcanvas)
+- [ ] Abrir el menú con el botón ☰ y verificar que se despliega correctamente.
+- [ ] Hacer click fuera del menú y comprobar que se cierra con un solo click.
+- [ ] Usar el botón de cerrar (❌) y confirmar que funciona.
+- [ ] Navegar a una opción del menú y validar que el offcanvas se cierra automáticamente.
+- [ ] Probar el botón Configuración: abrir/cerrar la sección interna de ajustes.
+🌙 Configuración dentro del menú
+- [ ] Activar el modo oscuro y confirmar que toda la interfaz cambia de estilo.
+- [ ] Recargar la página y comprobar que el modo oscuro se mantiene (persistencia en localStorage).
+- [ ] Ajustar el tamaño de fuente con el slider y verificar que el cambio es inmediato.
+- [ ] Recargar la página y confirmar que el tamaño elegido se conserva.
+🎬 Navegación general
+- [ ] Desde el menú, entrar a Inicio y comprobar que carga la página correcta.
+- [ ] Si el usuario es staff, validar que aparece la opción Agregar película.
+- [ ] Si el usuario es cliente, validar que aparece la opción Mis entradas.
+- [ ] Probar el acceso a Soporte y confirmar que abre la vista correspondiente.
+- [ ] Probar el botón Cerrar sesión y confirmar que redirige al login.
+♿ Accesibilidad
+- [ ] Al cerrar el menú, comprobar que el foco vuelve al botón ☰ de la navbar.
+- [ ] Revisar que todos los botones tengan aria-label o texto visible.
+- [ ] Validar contraste de colores en modo claro y oscuro.

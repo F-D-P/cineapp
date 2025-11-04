@@ -1,0 +1,32 @@
+{% extends "peliculas/base.html" %}
+{% block content %}
+<div class="container mt-5 text-center" data-aos="fade-up">
+  <h2 class="text-danger fw-bold">
+    <i class="fas fa-times-circle"></i> Pago fallido
+  </h2>
+  <p class="lead">Tu reserva <strong>#{{ reserva.id }}</strong> no pudo completarse.</p>
+
+  <div class="alert alert-warning mt-4">
+    <p>El pago fue rechazado, cancelado o no se procesó correctamente.</p>
+    <p>Podés reintentar el pago desde el checkout o revisar tus reservas.</p>
+  </div>
+
+  {% if request.user.is_staff and error_mp %}
+    <div class="alert alert-danger mt-3">
+      <strong>Error técnico:</strong> {{ error_mp }}
+    </div>
+  {% endif %}
+
+  <div class="d-grid gap-3 mt-4">
+    <a href="{% url 'checkout' reserva.id %}" class="btn btn-outline-warning btn-lg">
+      <i class="fas fa-redo-alt"></i> Reintentar pago
+    </a>
+    <a href="{% url 'mis_reservas' %}" class="btn btn-outline-success btn-lg">
+      <i class="fas fa-ticket-alt"></i> Ver mis reservas
+    </a>
+    <a href="{% url 'catalogo' %}" class="btn btn-outline-secondary btn-lg">
+      <i class="fas fa-film"></i> Volver al catálogo
+    </a>
+  </div>
+</div>
+{% endblock %}

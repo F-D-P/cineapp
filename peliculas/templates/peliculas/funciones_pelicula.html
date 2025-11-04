@@ -1,0 +1,99 @@
+{% extends 'peliculas/base.html' %}
+{% block title %}Funciones de {{ pelicula.titulo }}{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} mt-3">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <h2 class="text-white">Funciones de {{ pelicula.titulo }}</h2>
+
+  <!-- 📅 Lista de funciones existentes -->
+  <div class="mt-4">
+    <h4 class="text-white">Funciones programadas</h4>
+    <table class="table table-dark table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Sala</th>
+          <th>Ocupación</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for funcion in funciones %}
+          <tr>
+            <td>{{ funcion.fecha }}</td>
+            <td>{{ funcion.hora }}</td>
+            <td>{{ funcion.sala }}</td>
+            <td>
+              <div class="mb-1">
+                {{ funcion.cantidad_ocupados }} / {{ funcion.asientos.count }}
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar {% if funcion.porcentaje_ocupacion >= 80 %}bg-danger{% elif funcion.porcentaje_ocupacion >= 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                     role="progressbar" 
+                     style="width: {{ funcion.porcentaje_ocupacion }}%;" 
+                     aria-valuenow="{{ funcion.porcentaje_ocupacion }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+              </div>
+            </td>
+            <td>
+              <a href="{% url 'editar_funcion' funcion.id %}" class="btn btn-sm btn-warning">Editar</a>
+              <a href="{% url 'eliminar_funcion' funcion.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5">No hay funciones aún.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 🎬 Formulario para agregar nueva función -->
+<div class="mt-5 p-4 rounded shadow" style="background-color: #1e1e1e; border: 1px solid #444;">
+  <h4 class="text-warning fw-bold mb-4">
+    <i class="fas fa-plus-circle me-2"></i> Agregar nueva función
+  </h4>
+
+  <form method="POST" class="row g-4">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="col-md-6">
+        <label for="{{ field.id_for_label }}" class="form-label text-white fw-semibold">
+          {% if field.name == "fecha" %}
+            <i class="fas fa-calendar-alt me-1"></i>
+          {% elif field.name == "hora" %}
+            <i class="fas fa-clock me-1"></i>
+          {% elif field.name == "sala" %}
+            <i class="fas fa-door-open me-1"></i>
+          {% elif field.name == "precio" %}
+            <i class="fas fa-dollar-sign me-1"></i>
+          {% endif %}
+          {{ field.label }}
+        </label>
+        {{ field }}
+        {% if field.errors %}
+          <div class="text-danger small mt-1">{{ field.errors }}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="col-12 d-flex justify-content-between mt-4">
+      <button type="submit" class="btn btn-success btn-lg">
+        <i class="fas fa-save me-1"></i> Guardar función
+      </button>
+      <a href="{% url 'funciones_pelicula' pelicula.id %}" class="btn btn-outline-secondary btn-lg">
+        <i class="fas fa-arrow-left me-1"></i> Volver
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

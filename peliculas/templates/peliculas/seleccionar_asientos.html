@@ -1,0 +1,299 @@
+{% extends 'peliculas/base.html' %}
+{% block title %}Seleccionar asientos{% endblock %}
+{% block content %}
+<div class="container mt-5 text-center">
+  <h2 class="text-white mb-4">Seleccioná tus asientos para {{ funcion.pelicula.titulo }}</h2>
+
+  <!-- Botón atrás -->
+  <a href="{% url 'funciones_disponibles' funcion.pelicula.id %}" class="btn btn-secondary mb-3">⬅️ Volver a funciones</a>
+
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+      <form method="POST" action="{% url 'confirmar_reserva' funcion.id %}">
+  {% csrf_token %}
+
+  <!-- Wrapper del mapa -->
+  <div class="seat-map-wrapper">
+    <!-- Pantalla -->
+    <div class="screen-wrapper">
+      <div class="screen">Pantalla</div>
+    </div>
+
+    <!-- Grid de asientos -->
+    <div class="seat-map-grid">
+      <!-- Cabecera con números -->
+      <div class="seat-row header-numbers">
+        <span class="fila-label invisible">Fila</span>
+        {% for col in columnas %}
+          <span class="col-label">{{ col }}</span>
+        {% endfor %}
+      </div>
+
+      <!-- Filas -->
+      {% for fila in filas %}
+        <div class="seat-row">
+          <span class="fila-label">{{ fila }}</span>
+          {% for asiento in asientos %}
+            {% if asiento.fila == fila %}
+              <label class="seat {% if asiento.estado == 'ocupado' %}occupied{% endif %}">
+                <input type="checkbox"
+                       name="asientos"
+                       value="{{ asiento.id }}"
+                       data-fila="{{ asiento.fila }}"
+                       data-col="{{ asiento.numero }}"
+                       {% if asiento.estado == 'ocupado' %}disabled{% endif %}>
+                <svg class="seat-svg" viewBox="0 0 64 64" aria-hidden="true">
+                  <rect x="14" y="8" width="36" height="24" rx="8" class="seat-body"></rect>
+                  <rect x="10" y="32" width="44" height="12" rx="4" class="seat-body"></rect>
+                  <rect x="6" y="28" width="6" height="20" rx="2" class="seat-base"></rect>
+                  <rect x="52" y="28" width="6" height="20" rx="2" class="seat-base"></rect>
+                  <rect x="20" y="46" width="24" height="6" rx="2" class="seat-base"></rect>
+                </svg>
+              </label>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div> <!-- seat-map-grid -->
+  </div> <!-- seat-map-wrapper -->
+
+  <div class="d-flex justify-content-center my-4 flex-column align-items-center">
+    <button id="confirmar-btn" class="confirmar-btn">Confirmar reserva</button>
+    <p id="mensaje-error" style="display:none; color: red; margin-top: 8px;"></p>
+
+    <!-- Contador y lista de asientos seleccionados -->
+    <p id="contador-asientos" class="text-white mt-3"></p>
+    <p id="lista-asientos" class="text-white"></p>
+
+    <!-- Campo oculto para enviar IDs de asientos al backend -->
+    <input type="hidden" name="asientos_seleccionados" id="asientos-seleccionados">
+  </div>
+</form>
+    </div>
+  </div>
+
+  <!-- Leyenda -->
+  <div class="leyenda-asientos">
+    <div class="estado">
+      <span class="asiento libre"></span> Libre
+    </div>
+    <div class="estado">
+      <span class="asiento seleccionado"></span> Seleccionado
+    </div>
+    <div class="estado">
+      <span class="asiento ocupado"></span> Ocupado
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const confirmarBtn = document.getElementById('confirmar-btn');
+    const mensaje = document.getElementById('mensaje-error');
+    const contador = document.getElementById('contador-asientos');
+    const lista = document.getElementById('lista-asientos');
+    const inputIds = document.getElementById('asientos-seleccionados');
+
+    function actualizarSeleccion() {
+      const seleccionados = document.querySelectorAll('input[name="asientos"]:checked');
+      const total = seleccionados.length;
+
+      if (total > 0) {
+        contador.textContent = `Asientos seleccionados: ${total}`;
+        let resumen = [];
+        let ids = [];
+
+        seleccionados.forEach(input => {
+          const fila = input.getAttribute('data-fila');
+          const col = input.getAttribute('data-col');
+          resumen.push(`${fila}${col}`);
+          ids.push(input.value); // 👈 guardamos el ID real
+        });
+
+        lista.textContent = `Elegiste: ${resumen.join(', ')}`;
+        inputIds.value = ids.join(','); // 👈 enviamos IDs al backend
+      } else {
+        contador.textContent = "";
+        lista.textContent = "";
+        inputIds.value = "";
+      }
+    }
+
+    // Escuchar cambios
+    document.querySelectorAll('input[name="asientos"]').forEach(input => {
+      input.addEventListener('change', actualizarSeleccion);
+    });
+
+    // Validación al confirmar
+    if (confirmarBtn) {
+      confirmarBtn.addEventListener('click', function (event) {
+        const seleccionados = document.querySelectorAll('input[name="asientos"]:checked');
+        if (seleccionados.length === 0) {
+          event.preventDefault();
+          mensaje.textContent = '⚠️ No seleccionaste ningún asiento.';
+          mensaje.style.display = 'block';
+        } else {
+          mensaje.style.display = 'none';
+        }
+      });
+    }
+  });
+</script>
+
+<style>
+:root {
+  --seat-size: min(6vw, 55px);
+  --seat-gap: 8px;
+  --color-libre: #27ae60;       /* verde */
+  --color-seleccionado: #1e88e5;/* azul */
+  --color-ocupado: #e53935;     /* rojo */
+}
+
+/* Contenedor principal */
+.seat-map-wrapper {
+  border: 3px solid #333;
+  border-radius: 12px;
+  padding: 20px;
+  background: rgba(20,20,20,0.85); /* 🔥 gris oscuro translúcido */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+/* Pantalla */
+.screen-wrapper { display: flex; justify-content: center; }
+.screen {
+  background: #dcdcdc;
+  color: #111;
+  font-weight: 700;
+  padding: 12px 20px;
+  border-radius: 10px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.35);
+}
+
+/* Grid: 1 columna para etiqueta + 10 asientos */
+.seat-map-grid {
+  display: grid;
+  grid-template-columns: 34px repeat(10, var(--seat-size));
+  gap: var(--seat-gap);
+  justify-content: center;
+}
+
+/* Fila */
+.seat-row { display: contents; }
+.fila-label {
+  text-align: center;
+  font-weight: 700;
+  color: #fff;
+}
+.col-label {
+  text-align: center;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Asientos */
+.seat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--seat-size);
+  height: var(--seat-size);
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.seat input { display: none; }
+.seat-svg { width: 100%; height: 100%; }
+.seat-body, .seat-base { transition: fill .18s ease; }
+
+/* Estados */
+.seat:not(.occupied) .seat-body { fill: var(--color-libre); }
+.seat input:checked + .seat-svg .seat-body { fill: var(--color-seleccionado); }
+.seat.occupied .seat-body { fill: var(--color-ocupado); }
+.seat-base { fill: #e0e0e0; }
+
+/* Hover */
+.seat:not(.occupied):hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.35);
+}
+.seat.occupied { cursor: not-allowed; opacity: .9; }
+
+/* Botón */
+.confirmar-btn {
+  background-color: var(--color-libre);
+  color: #fff;
+  font-weight: bold;
+  padding: 14px 30px;
+  font-size: 1.2rem;
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+}
+.confirmar-btn:hover { background-color: #1f8a45; }
+
+/* Leyenda */
+.leyenda-asientos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  margin-top: 24px;
+  background-color: #f5f5f5;
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #222;
+}
+
+.estado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.estado:not(:last-child) {
+  border-right: 2px solid #ccc;
+}
+
+.estado .asiento {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: inline-block;
+  border: 1px solid #aaa;
+}
+
+.asiento.libre { background-color: #27ae60; }
+.asiento.seleccionado { background-color: #1e88e5; }
+.asiento.ocupado { background-color: #e53935; }
+
+.modo-oscuro .leyenda-asientos {
+  background-color: #222;
+  color: #f0f0f0;
+  box-shadow: 0 2px 6px rgba(255,255,255,0.1);
+}
+
+.modo-oscuro .estado .asiento { border: 1px solid #666; }
+.modo-oscuro .estado:not(:last-child) { border-right: 2px solid #555; }
+
+.badge {
+  display: inline-block;
+  padding: 0.4em 0.8em;
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #fff;
+  background-color: #28a745; /* verde */
+  border-radius: 0.5rem;
+}
+</style>
+{% endblock %}

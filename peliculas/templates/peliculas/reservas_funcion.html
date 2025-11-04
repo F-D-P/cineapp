@@ -1,0 +1,83 @@
+{% extends 'peliculas/base.html' %}
+{% block title %}Reservas de {{ funcion.pelicula.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5" data-aos="fade-up">
+  <h2 class="fw-bold mb-4">
+    <i class="fas fa-users text-info"></i> Reservas de la función
+  </h2>
+
+  <div class="mb-3">
+    <p><strong>Película:</strong> {{ funcion.pelicula.titulo }}</p>
+    <p><strong>Fecha:</strong> {{ funcion.fecha|date:"d/m/Y" }} - {{ funcion.hora|time:"H:i" }}</p>
+    <p><strong>Sala:</strong> {{ funcion.sala }}</p>
+    <p><strong>Ocupación:</strong> {{ funcion.asientos.filter(estado='ocupado').count }} / {{ funcion.asientos.count }}</p>
+  </div>
+
+  {% if reservas %}
+    <table class="table table-dark table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Asientos</th>
+          <th>Cantidad</th>
+          <th>Estado</th>
+          <th>QR</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for reserva in reservas %}
+          <tr>
+            <td>{{ reserva.usuario.username }}</td>
+            <td>
+              {% for asiento in reserva.asientos.all %}
+                {{ asiento.fila }}{{ asiento.numero }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </td>
+            <td>{{ reserva.cantidad }}</td>
+            <td>
+              {% if reserva.estado == "pendiente" %}
+                <span class="badge bg-warning text-dark">Pendiente</span>
+              {% elif reserva.estado == "pagada" %}
+                <span class="badge bg-success">Pagada</span>
+              {% elif reserva.estado == "cancelada" %}
+                <span class="badge bg-danger">Cancelada</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ reserva.estado|title }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if reserva.qr_code %}
+                <a href="{{ reserva.qr_code.url }}" target="_blank" class="btn btn-sm btn-outline-light">
+                  <i class="fas fa-qrcode"></i>
+                </a>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if reserva.estado == "pendiente" %}
+                <form method="POST" action="{% url 'marcar_pagada' reserva.id %}" onsubmit="return confirm('¿Estás seguro de que querés marcar esta reserva como pagada?');">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-sm btn-success">
+    <i class="fas fa-check"></i> Marcar como pagada
+  </button>
+</form>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">No hay reservas para esta función.</p>
+  {% endif %}
+
+  <a href="{% url 'funciones_pelicula' funcion.pelicula.id %}" class="btn btn-outline-secondary mt-4">
+    <i class="fas fa-arrow-left"></i> Volver a funciones
+  </a>
+</div>
+{% endblock %}

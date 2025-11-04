@@ -1,0 +1,30 @@
+{% extends 'peliculas/base.html' %}
+{% block title %}Resultados de búsqueda{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="fw-semibold">Resultados para: "{{ query }}"</h2>
+  <div class="row">
+    {% for pelicula in resultados %}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow card-hover">
+          <a href="{% url 'detalle_pelicula' pelicula.id %}">
+            {% if pelicula.imagen %}
+              <img src="{{ pelicula.imagen.url }}" class="card-img-top" alt="{{ pelicula.titulo }}">
+            {% else %}
+              <img src="{% static 'img/no-image.png' %}" class="card-img-top" alt="Sin imagen">
+            {% endif %}
+          </a>
+          <div class="card-body">
+            <h5 class="card-title">{{ pelicula.titulo }}</h5>
+            <p class="card-text">{{ pelicula.genero }} · {{ pelicula.director }}</p>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-muted">No se encontraron películas que coincidan con tu búsqueda.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+

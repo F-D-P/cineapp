@@ -1,0 +1,85 @@
+{% extends 'peliculas/base.html' %}
+{% block title %}Editar función{% endblock %}
+
+{% block content %}
+<div class="container mt-5" data-aos="fade-up">
+  <h2 class="text-warning fw-bold mb-4">
+    <i class="fas fa-edit me-2"></i> Editar función de "{{ funcion.pelicula.titulo }}"
+  </h2>
+
+  <div class="card bg-dark text-white shadow">
+    <div class="card-body">
+      <form method="POST" class="row g-4">
+        {% csrf_token %}
+
+        <div class="col-md-6">
+          <label for="id_fecha" class="form-label">
+            <i class="fas fa-calendar-alt me-1"></i> Fecha
+          </label>
+          {{ form.fecha }}
+        </div>
+
+        <div class="col-md-6">
+          <label for="id_hora" class="form-label">
+            <i class="fas fa-clock me-1"></i> Hora
+          </label>
+          {{ form.hora }}
+        </div>
+
+        <div class="col-md-6">
+          <label for="id_sala" class="form-label">
+            <i class="fas fa-door-open me-1"></i> Sala
+          </label>
+          {{ form.sala }}
+        </div>
+
+        <div class="col-md-6">
+          <label for="id_capacidad" class="form-label">
+            <i class="fas fa-users me-1"></i> Capacidad
+          </label>
+          {{ form.capacidad }}
+        </div>
+
+        <div class="col-md-6">
+          <label for="id_precio" class="form-label">
+            <i class="fas fa-dollar-sign me-1"></i> Precio
+          </label>
+          {{ form.precio }}
+        </div>
+
+        <div class="col-md-6">
+          <label for="id_formato" class="form-label">
+            <i class="fas fa-film me-1"></i> Formato
+          </label>
+          {{ form.formato }}
+        </div>
+
+        <div class="col-md-6">
+          <label for="id_idioma" class="form-label">
+            <i class="fas fa-language me-1"></i> Idioma
+          </label>
+          {{ form.idioma }}
+        </div>
+
+        <div class="col-md-6 d-flex align-items-center">
+          <div class="form-check mt-4">
+            {{ form.lleno }}
+            <label for="id_lleno" class="form-check-label ms-2">
+              <i class="fas fa-ban me-1"></i> Marcar como lleno
+            </label>
+          </div>
+        </div>
+
+        <div class="col-12 d-flex justify-content-between mt-4">
+          <button type="submit" class="btn btn-warning btn-lg">
+            <i class="fas fa-save me-1"></i> Actualizar función
+          </button>
+          <a href="{% url 'funciones_disponibles' funcion.pelicula.id %}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-arrow-left me-1"></i> Cancelar
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

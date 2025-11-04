@@ -1,0 +1,76 @@
+{% extends 'peliculas/base.html' %}
+{% block title %}Funciones de {{ pelicula.titulo }}{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-white">Funciones disponibles para "{{ pelicula.titulo }}"</h2>
+
+  <!-- 🔧 Botón para crear nueva función en página aparte -->
+  {% if request.user.is_staff %}
+    <div class="text-end mb-3">
+      <a href="{% url 'agregar_funcion' pelicula.id %}" class="btn btn-success">
+        ➕ Nueva función
+      </a>
+    </div>
+  {% endif %}
+
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <ul class="list-group">
+        {% for funcion in funciones %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              {{ funcion.fecha }} - {{ funcion.hora }} - Sala {{ funcion.sala }}
+              | 💵 ${{ funcion.precio }}
+              | {{ funcion.formato }} - {{ funcion.get_idioma_display }}
+
+              {% if funcion.es_miercoles %}
+                <span class="badge bg-success ms-2">🎟️ Promo 2x1</span>
+              {% endif %}
+
+              {% if funcion.lleno %}
+                <span class="badge bg-danger ms-2">LLENO</span>
+              {% endif %}
+            </div>
+
+            <div>
+              {% if not funcion.lleno %}
+                <a href="{% url 'seleccionar_asientos' funcion.id %}" class="btn btn-sm btn-primary">Reservar</a>
+              {% endif %}
+
+              {% if request.user.is_staff %}
+                <a href="{% url 'editar_funcion' funcion.id %}" class="btn btn-sm btn-warning ms-2">Editar</a>
+                
+                <!-- Botón que abre el modal -->
+                <button type="button" class="btn btn-sm btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#confirmarEliminar{{ funcion.id }}">
+                  Eliminar
+                </button>
+
+                <!-- Modal de confirmación -->
+                <div class="modal fade" id="confirmarEliminar{{ funcion.id }}" tabindex="-1" aria-labelledby="modalLabel{{ funcion.id }}" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content bg-dark text-white">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabel{{ funcion.id }}">Confirmar eliminación</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                      </div>
+                      <div class="modal-body">
+                        ¿Estás seguro de que deseas eliminar la función del <strong>{{ funcion.fecha }} - {{ funcion.hora }}</strong> en la <strong>{{ funcion.sala }}</strong>?
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <a href="{% url 'eliminar_funcion' funcion.id %}" class="btn btn-danger">Eliminar</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </li>
+        {% empty %}
+          <li class="list-group-item">No hay funciones disponibles.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

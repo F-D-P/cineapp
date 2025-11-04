@@ -1,0 +1,67 @@
+{% extends 'peliculas/base.html' %}
+{% block title %}Mis entradas{% endblock %}
+
+{% block content %}
+<div class="container mt-5" data-aos="fade-up">
+  <h2 class="fw-bold mb-4">
+    <i class="fas fa-ticket-alt text-warning"></i> Mis entradas
+  </h2>
+
+  {% if reservas %}
+    <div class="row">
+      {% for reserva in reservas %}
+        <div class="col-md-12">
+          <div class="card mb-4" style="background-color: #1e1e1e; color: white; border: 1px solid #444;">
+            <div class="row g-0">
+              <div class="col-md-4">
+                <img src="{{ reserva.funcion.pelicula.imagen.url }}" class="img-fluid rounded-start" alt="{{ reserva.funcion.pelicula.titulo }}">
+              </div>
+              <div class="col-md-8">
+                <div class="card-body">
+                  <h4 class="card-title">{{ reserva.funcion.pelicula.titulo }}</h4>
+                  <p class="card-text">
+                    <strong>🎬 Sala:</strong> {{ reserva.funcion.sala }}<br>
+                    <strong>🗓️ Fecha:</strong> {{ reserva.funcion.fecha|date:"d/m/Y" }}<br>
+                    <strong>⏰ Hora:</strong> {{ reserva.funcion.hora|time:"H:i" }}<br>
+                    <strong>🪑 Asientos:</strong>
+                    {% for asiento in reserva.asientos.all %}
+                      {{ asiento.fila }}{{ asiento.numero }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                  </p>
+
+                  <p class="mt-2">
+                    <strong>📌 Estado:</strong>
+                    {% if reserva.estado == "pendiente" %}
+                      <span class="badge bg-warning text-dark">Pendiente de pago</span>
+                    {% elif reserva.estado == "pagada" %}
+                      <span class="badge bg-success">Pagada</span>
+                    {% elif reserva.estado == "cancelada" %}
+                      <span class="badge bg-danger">Cancelada</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ reserva.estado|title }}</span>
+                    {% endif %}
+                  </p>
+
+                  {% if reserva.estado == "pendiente" %}
+                    <a href="{% url 'checkout' reserva.id %}" class="btn btn-outline-warning btn-sm mt-2">
+                      <i class="fas fa-credit-card"></i> Reintentar pago
+                    </a>
+                  {% endif %}
+
+                  {% if reserva.qr_code and reserva.estado == "pagada" %}
+                    <a href="{{ reserva.qr_code.url }}" target="_blank" class="btn btn-outline-success btn-sm mt-2">
+                      <i class="fas fa-qrcode"></i> Ver código QR
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No tenés entradas reservadas.</p>
+  {% endif %}
+</div>
+{% endblock %}

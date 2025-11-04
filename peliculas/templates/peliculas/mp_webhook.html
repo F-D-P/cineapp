@@ -1,0 +1,13 @@
+{% extends "peliculas/base.html" %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Debug Webhook MercadoPago</h2>
+  <p>Esto solo debería usarse en desarrollo para ver qué datos llegan desde MP.</p>
+
+  <pre class="bg-light p-3 border rounded">
+    {{ data|safe }}
+  </pre>
+
+  <a href="{% url 'catalogo' %}" class="btn btn-secondary mt-3">Volver al catálogo</a>
+</div>
+{% endblock %}

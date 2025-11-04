@@ -1,0 +1,16 @@
+{% extends 'peliculas/base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-warning">{{ pelicula.titulo }} - Funciones disponibles</h2>
+  <ul class="list-group mt-4">
+    {% for funcion in funciones %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ funcion.fecha|date:"d/m/Y" }} - {{ funcion.hora|time:"H:i" }} - Sala {{ funcion.sala }}
+        <a href="#" class="btn btn-success btn-sm">Comprar entrada</a>
+      </li>
+    {% empty %}
+      <li class="list-group-item">No hay funciones disponibles.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
