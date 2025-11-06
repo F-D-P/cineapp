@@ -53,13 +53,21 @@ class Puntuacion(models.Model):
 
 
 class Funcion(models.Model):
+    SALAS = [
+        ('Sala 1', 'Sala 1'),
+        ('Sala 2', 'Sala 2'),
+        ('Sala 3', 'Sala 3'),
+        ('Sala 4', 'Sala 4'),
+        ('Sala 5', 'Sala 5'),
+        ('Sala 6', 'Sala 6'),
+    ]
+
     pelicula = models.ForeignKey(Pelicula, on_delete=models.CASCADE, related_name='funciones')
     fecha = models.DateField()
     hora = models.TimeField()
-    sala = models.CharField(max_length=50)
+    sala = models.CharField(max_length=50, choices=SALAS)  # 👈 ahora con choices
     capacidad = models.PositiveIntegerField(default=100)
 
-    # 🔧 Nuevos campos
     precio = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
 
     FORMATO_CHOICES = [
@@ -79,22 +87,6 @@ class Funcion(models.Model):
 
     def __str__(self):
         return f"{self.pelicula.titulo} - {self.fecha} {self.hora} - Sala {self.sala}"
-
-    @property
-    def es_miercoles(self):
-        return self.fecha.weekday() == 2  # 0=Lunes, 2=Miércoles
-    
-    @property
-    def cantidad_ocupados(self):
-        return self.asientos.filter(estado='ocupado').count()
-
-    @property
-    def porcentaje_ocupacion(self):
-        total = self.asientos.count()
-        if total == 0:
-            return 0
-        return round((self.cantidad_ocupados / total) * 100)
-
 class Asiento(models.Model):
     funcion = models.ForeignKey(Funcion, on_delete=models.CASCADE, related_name='asientos')
     fila = models.CharField(max_length=1)  # A, B, C...

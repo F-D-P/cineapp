@@ -13,11 +13,26 @@
       <form method="POST" class="row g-4">
         {% csrf_token %}
 
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
         <div class="col-md-6">
           <label for="id_fecha" class="form-label">
             <i class="fas fa-calendar-alt me-1"></i> Fecha
           </label>
           {{ form.fecha }}
+          {% if form.fecha.errors %}
+            <div class="text-danger small">{{ form.fecha.errors }}</div>
+          {% endif %}
         </div>
 
         <div class="col-md-6">
@@ -25,6 +40,9 @@
             <i class="fas fa-clock me-1"></i> Hora
           </label>
           {{ form.hora }}
+          {% if form.hora.errors %}
+            <div class="text-danger small">{{ form.hora.errors }}</div>
+          {% endif %}
         </div>
 
         <div class="col-md-6">
@@ -32,6 +50,9 @@
             <i class="fas fa-door-open me-1"></i> Sala
           </label>
           {{ form.sala }}
+          {% if form.sala.errors %}
+            <div class="text-danger small">{{ form.sala.errors }}</div>
+          {% endif %}
         </div>
 
         <div class="col-md-6">
@@ -39,6 +60,9 @@
             <i class="fas fa-users me-1"></i> Capacidad
           </label>
           {{ form.capacidad }}
+          {% if form.capacidad.errors %}
+            <div class="text-danger small">{{ form.capacidad.errors }}</div>
+          {% endif %}
         </div>
 
         <div class="col-md-6">
@@ -46,6 +70,10 @@
             <i class="fas fa-dollar-sign me-1"></i> Precio
           </label>
           {{ form.precio }}
+          {% if form.precio.errors %}
+            <div class="text-danger small">{{ form.precio.errors }}</div>
+          {% endif %}
+          <div class="form-text">Usa punto como separador decimal (ej: 1500.00).</div>
         </div>
 
         <div class="col-md-6">
@@ -53,6 +81,9 @@
             <i class="fas fa-film me-1"></i> Formato
           </label>
           {{ form.formato }}
+          {% if form.formato.errors %}
+            <div class="text-danger small">{{ form.formato.errors }}</div>
+          {% endif %}
         </div>
 
         <div class="col-md-6">
@@ -60,6 +91,9 @@
             <i class="fas fa-language me-1"></i> Idioma
           </label>
           {{ form.idioma }}
+          {% if form.idioma.errors %}
+            <div class="text-danger small">{{ form.idioma.errors }}</div>
+          {% endif %}
         </div>
 
         <div class="col-md-6 d-flex align-items-center">
@@ -68,6 +102,9 @@
             <label for="id_lleno" class="form-check-label ms-2">
               <i class="fas fa-ban me-1"></i> Marcar como lleno
             </label>
+            {% if form.lleno.errors %}
+              <div class="text-danger small">{{ form.lleno.errors }}</div>
+            {% endif %}
           </div>
         </div>
 
@@ -75,7 +112,7 @@
           <button type="submit" class="btn btn-success btn-lg">
             <i class="fas fa-save me-1"></i> Guardar función
           </button>
-          <a href="{% url 'funciones_disponibles' pelicula.id %}" class="btn btn-outline-light btn-lg">
+          <a href="{% url 'funciones_disponibles' pk=pelicula.id %}" class="btn btn-outline-light btn-lg">
             <i class="fas fa-arrow-left me-1"></i> Cancelar
           </a>
         </div>

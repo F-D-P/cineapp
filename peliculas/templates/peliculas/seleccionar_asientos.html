@@ -4,75 +4,77 @@
 <div class="container mt-5 text-center">
   <h2 class="text-white mb-4">Seleccioná tus asientos para {{ funcion.pelicula.titulo }}</h2>
 
-  <!-- Botón atrás -->
   <a href="{% url 'funciones_disponibles' funcion.pelicula.id %}" class="btn btn-secondary mb-3">⬅️ Volver a funciones</a>
 
   <div class="row justify-content-center">
     <div class="col-12 col-lg-10">
       <form method="POST" action="{% url 'confirmar_reserva' funcion.id %}">
-  {% csrf_token %}
+        {% csrf_token %}
 
-  <!-- Wrapper del mapa -->
-  <div class="seat-map-wrapper">
-    <!-- Pantalla -->
-    <div class="screen-wrapper">
-      <div class="screen">Pantalla</div>
-    </div>
+        <!-- ENCUBRIMIENTO TIPO SALA -->
+        <div class="map-container">
+          <div class="seat-map-wrapper">
+            <!-- Pantalla alineada con la grilla: el width se calcula usando la cantidad de columnas -->
+            <div class="screen-wrapper">
+              <div class="screen"
+                   style="max-width: calc(var(--label-width) + (var(--seat-size) * {{ columnas|length }}) + (var(--seat-gap) * {{ columnas|length|add:'-1' }}));">
+                Pantalla
+              </div>
+            </div>
 
-    <!-- Grid de asientos -->
-    <div class="seat-map-grid">
-      <!-- Cabecera con números -->
-      <div class="seat-row header-numbers">
-        <span class="fila-label invisible">Fila</span>
-        {% for col in columnas %}
-          <span class="col-label">{{ col }}</span>
-        {% endfor %}
-      </div>
+            <!-- Cabecera -->
+            <div class="seat-row header-row">
+              <span class="fila-label invisible">Fila</span>
+              <div class="asientos-row">
+                {% for col in columnas %}
+                  <span class="col-label">{{ col }}</span>
+                {% endfor %}
+              </div>
+            </div>
 
-      <!-- Filas -->
-      {% for fila in filas %}
-        <div class="seat-row">
-          <span class="fila-label">{{ fila }}</span>
-          {% for asiento in asientos %}
-            {% if asiento.fila == fila %}
-              <label class="seat {% if asiento.estado == 'ocupado' %}occupied{% endif %}">
-                <input type="checkbox"
-                       name="asientos"
-                       value="{{ asiento.id }}"
-                       data-fila="{{ asiento.fila }}"
-                       data-col="{{ asiento.numero }}"
-                       {% if asiento.estado == 'ocupado' %}disabled{% endif %}>
-                <svg class="seat-svg" viewBox="0 0 64 64" aria-hidden="true">
-                  <rect x="14" y="8" width="36" height="24" rx="8" class="seat-body"></rect>
-                  <rect x="10" y="32" width="44" height="12" rx="4" class="seat-body"></rect>
-                  <rect x="6" y="28" width="6" height="20" rx="2" class="seat-base"></rect>
-                  <rect x="52" y="28" width="6" height="20" rx="2" class="seat-base"></rect>
-                  <rect x="20" y="46" width="24" height="6" rx="2" class="seat-base"></rect>
-                </svg>
-              </label>
-            {% endif %}
-          {% endfor %}
+            <!-- Filas -->
+            {% for fila in filas %}
+              <div class="seat-row">
+                <span class="fila-label">{{ fila }}</span>
+                <div class="asientos-row">
+                  {% for asiento in asientos %}
+                    {% if asiento.fila == fila %}
+                      <label class="seat {% if asiento.estado == 'ocupado' %}occupied{% endif %}">
+                        <input type="checkbox"
+                               name="asientos"
+                               value="{{ asiento.id }}"
+                               data-fila="{{ asiento.fila }}"
+                               data-col="{{ asiento.numero }}"
+                               {% if asiento.estado == 'ocupado' %}disabled{% endif %}>
+                        <svg class="seat-svg" viewBox="0 0 64 64" aria-hidden="true">
+                          <rect x="14" y="8" width="36" height="24" rx="8" class="seat-body"></rect>
+                          <rect x="10" y="32" width="44" height="12" rx="4" class="seat-body"></rect>
+                          <rect x="6" y="28" width="6" height="20" rx="2" class="seat-base"></rect>
+                          <rect x="52" y="28" width="6" height="20" rx="2" class="seat-base"></rect>
+                          <rect x="20" y="46" width="24" height="6" rx="2" class="seat-base"></rect>
+                        </svg>
+                      </label>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
         </div>
-      {% endfor %}
-    </div> <!-- seat-map-grid -->
-  </div> <!-- seat-map-wrapper -->
 
-  <div class="d-flex justify-content-center my-4 flex-column align-items-center">
-    <button id="confirmar-btn" class="confirmar-btn">Confirmar reserva</button>
-    <p id="mensaje-error" style="display:none; color: red; margin-top: 8px;"></p>
+        <div class="d-flex justify-content-center my-4 flex-column align-items-center">
+          <button id="confirmar-btn" class="confirmar-btn" type="submit">Confirmar reserva</button>
+          <p id="mensaje-error" style="display:none; color: red; margin-top: 8px;"></p>
 
-    <!-- Contador y lista de asientos seleccionados -->
-    <p id="contador-asientos" class="text-white mt-3"></p>
-    <p id="lista-asientos" class="text-white"></p>
+          <p id="contador-asientos" class="text-white mt-3"></p>
+          <p id="lista-asientos" class="text-white"></p>
 
-    <!-- Campo oculto para enviar IDs de asientos al backend -->
-    <input type="hidden" name="asientos_seleccionados" id="asientos-seleccionados">
-  </div>
-</form>
+          <input type="hidden" name="asientos_seleccionados" id="asientos-seleccionados">
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- Leyenda -->
   <div class="leyenda-asientos">
     <div class="estado">
       <span class="asiento libre"></span> Libre
@@ -100,18 +102,16 @@
 
       if (total > 0) {
         contador.textContent = `Asientos seleccionados: ${total}`;
-        let resumen = [];
-        let ids = [];
-
+        const resumen = [];
+        const ids = [];
         seleccionados.forEach(input => {
           const fila = input.getAttribute('data-fila');
           const col = input.getAttribute('data-col');
           resumen.push(`${fila}${col}`);
-          ids.push(input.value); // 👈 guardamos el ID real
+          ids.push(input.value);
         });
-
         lista.textContent = `Elegiste: ${resumen.join(', ')}`;
-        inputIds.value = ids.join(','); // 👈 enviamos IDs al backend
+        inputIds.value = ids.join(',');
       } else {
         contador.textContent = "";
         lista.textContent = "";
@@ -119,12 +119,10 @@
       }
     }
 
-    // Escuchar cambios
     document.querySelectorAll('input[name="asientos"]').forEach(input => {
       input.addEventListener('change', actualizarSeleccion);
     });
 
-    // Validación al confirmar
     if (confirmarBtn) {
       confirmarBtn.addEventListener('click', function (event) {
         const seleccionados = document.querySelectorAll('input[name="asientos"]:checked');
@@ -137,67 +135,130 @@
         }
       });
     }
+
+    // sincronizar clase visual selected
+    document.querySelectorAll('label.seat').forEach(label => {
+      const input = label.querySelector('input[type="checkbox"]');
+      if (!input) return;
+      if (input.checked) label.classList.add('selected'); else label.classList.remove('selected');
+      input.addEventListener('change', () => {
+        if (input.checked) label.classList.add('selected'); else label.classList.remove('selected');
+      });
+    });
   });
+  // Ajuste automático: calcula el ancho de la grilla y aplica max-width a .screen
+(function alignScreenToGrid() {
+  const colLabels = document.querySelectorAll('.col-label');
+  if (!colLabels.length) return;
+
+  const seat = document.querySelector('.seat') || document.querySelector('.seat-empty');
+  const screenEl = document.querySelector('.screen');
+  if (!seat || !screenEl) return;
+
+  // ancho calculado por asiento (incluye gap)
+  const seatStyle = getComputedStyle(seat);
+  const seatWidth = parseFloat(seatStyle.width);
+  const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--seat-gap')) || 8;
+  const cols = colLabels.length;
+  const labelWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--label-width')) || 34;
+
+  // ancho total: etiqueta izquierda + N*seat + (N-1)*gap
+  const totalWidth = labelWidth + (seatWidth * cols) + (Math.max(0, cols - 1) * gap);
+
+  // aplicar con algo de padding para que la pantalla se vea 'ancha' como antes
+  screenEl.style.maxWidth = Math.ceil(totalWidth) + 'px';
+  screenEl.style.width = '100%';
+})();
 </script>
 
 <style>
 :root {
   --seat-size: min(6vw, 55px);
   --seat-gap: 8px;
-  --color-libre: #27ae60;       /* verde */
-  --color-seleccionado: #1e88e5;/* azul */
-  --color-ocupado: #e53935;     /* rojo */
+  --color-libre: #27ae60;
+  --color-seleccionado: #1e88e5;
+  --color-ocupado: #e53935;
+  --label-width: 34px;
 }
 
-/* Contenedor principal */
-.seat-map-wrapper {
-  border: 3px solid #333;
+/* CONTENEDOR TIPO SALA */
+.map-container {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 18px;
   border-radius: 12px;
-  padding: 20px;
-  background: rgba(20,20,20,0.85); /* 🔥 gris oscuro translúcido */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 6px;
+}
+
+/* Centro del mapa */
+.seat-map-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-height: 80vh;
-  overflow: auto;
+  align-items: center;
+  width: 100%;
 }
 
-/* Pantalla */
-.screen-wrapper { display: flex; justify-content: center; }
+/* Pantalla: centrada y con mismo ancho que la grilla (calculo en style inline) */
+.screen-wrapper { display: flex; justify-content: center; margin-bottom: 10px; }
 .screen {
   background: #dcdcdc;
   color: #111;
   font-weight: 700;
-  padding: 12px 20px;
-  border-radius: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: inset 0 -6px 18px rgba(0,0,0,0.06);
   width: 100%;
-  text-align: center;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.35);
+  max-width: 900px;
 }
 
-/* Grid: 1 columna para etiqueta + 10 asientos */
-.seat-map-grid {
-  display: grid;
-  grid-template-columns: 34px repeat(10, var(--seat-size));
-  gap: var(--seat-gap);
+/* Filas */
+.seat-row {
+  display: flex;
+  align-items: center;
+  margin: 6px 0;
+  width: 100%;
   justify-content: center;
+  box-sizing: border-box;
 }
 
-/* Fila */
-.seat-row { display: contents; }
+/* etiqueta de fila */
 .fila-label {
-  text-align: center;
+  width: var(--label-width);
+  min-width: var(--label-width);
+  text-align: right;
   font-weight: 700;
   color: #fff;
-}
-.col-label {
-  text-align: center;
-  font-weight: 700;
-  color: #fff;
+  margin-right: var(--seat-gap);
+  box-sizing: border-box;
 }
 
-/* Asientos */
+/* contenedor de asientos alineado */
+.asientos-row {
+  display: flex;
+  gap: var(--seat-gap);
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+/* Números: mismo ancho que cada asiento */
+.col-label {
+  flex: 0 0 var(--seat-size);
+  width: var(--seat-size);
+  min-width: var(--seat-size);
+  text-align: center;
+  font-weight: 700;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+/* Asientos: input ocupa todo el label para que el click siempre active el checkbox al hacer click sobre el SVG */
 .seat {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -205,23 +266,51 @@
   height: var(--seat-size);
   cursor: pointer;
   transition: transform .12s ease, box-shadow .12s ease;
+  box-sizing: border-box;
+  user-select: none;
 }
-.seat input { display: none; }
-.seat-svg { width: 100%; height: 100%; }
-.seat-body, .seat-base { transition: fill .18s ease; }
 
-/* Estados */
+/* input ocupa todo el label (clicable) */
+.seat input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+  -webkit-appearance: none;
+}
+
+/* svg no captura eventos para dejar pasar el click al input */
+.seat-svg { pointer-events: none; width: calc(var(--seat-size) * 0.85); height: calc(var(--seat-size) * 0.85); display:block; }
+
+/* Estados visuales usando las clases .seat-body y .seat-base (SVG) */
 .seat:not(.occupied) .seat-body { fill: var(--color-libre); }
+.seat input:checked ~ .seat-svg .seat-body,
 .seat input:checked + .seat-svg .seat-body { fill: var(--color-seleccionado); }
 .seat.occupied .seat-body { fill: var(--color-ocupado); }
 .seat-base { fill: #e0e0e0; }
 
-/* Hover */
+/* Hover y foco */
 .seat:not(.occupied):hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 15px rgba(0,0,0,0.35);
 }
-.seat.occupied { cursor: not-allowed; opacity: .9; }
+.seat:focus-within { outline: 3px solid rgba(30,136,229,0.12); border-radius: 6px; }
+
+.seat.occupied { cursor: not-allowed; opacity: .95; pointer-events: none; }
+
+/* clase visual adicional cuando está seleccionado */
+label.seat.selected { outline: 3px solid rgba(30,136,229,0.12); border-radius: 6px; }
+
+/* Placeholder vacío para celdas sin asiento (si aplica) */
+.seat-empty {
+  width: var(--seat-size);
+  height: var(--seat-size);
+}
 
 /* Botón */
 .confirmar-btn {
@@ -232,6 +321,7 @@
   font-size: 1.2rem;
   border-radius: 10px;
   box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+  border: none;
 }
 .confirmar-btn:hover { background-color: #1f8a45; }
 
@@ -260,11 +350,7 @@
   gap: 8px;
   padding: 0 12px;
 }
-
-.estado:not(:last-child) {
-  border-right: 2px solid #ccc;
-}
-
+.estado:not(:last-child) { border-right: 2px solid #ccc; }
 .estado .asiento {
   width: 22px;
   height: 22px;
@@ -272,28 +358,146 @@
   display: inline-block;
   border: 1px solid #aaa;
 }
-
 .asiento.libre { background-color: #27ae60; }
 .asiento.seleccionado { background-color: #1e88e5; }
 .asiento.ocupado { background-color: #e53935; }
 
+/* Modo oscuro */
 .modo-oscuro .leyenda-asientos {
   background-color: #222;
   color: #f0f0f0;
   box-shadow: 0 2px 6px rgba(255,255,255,0.1);
 }
-
 .modo-oscuro .estado .asiento { border: 1px solid #666; }
 .modo-oscuro .estado:not(:last-child) { border-right: 2px solid #555; }
 
-.badge {
-  display: inline-block;
-  padding: 0.4em 0.8em;
-  font-size: 0.9em;
-  font-weight: bold;
-  color: #fff;
-  background-color: #28a745; /* verde */
-  border-radius: 0.5rem;
+/* Responsivo: mantiene la alineación y permite scroll horizontal si hay muchas columnas */
+@media (max-width: 900px) {
+  .map-container { overflow-x: auto; }
+  .seat-row { min-width: max-content; }
+  .screen { max-width: 100%; }
+}
+
+/* ===== Ajustes mínimos (pegar al final del CSS) ===== */
+
+/* Asegura que el recuadro muestre el contenido y permita scroll si es necesario */
+.map-container {
+  overflow-x: auto;   /* evita recortar asientos; permite scroll horizontal solo si hace falta */
+  overflow-y: visible;
+}
+
+/* Garantiza que el contenedor interno no fuerce una anchura que oculte elementos */
+.map-inner {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
+}
+
+/* Asegura que la fila de asientos no colapse y que cada asiento conserve su tamaño */
+.asientos-row {
+  display: flex !important;
+  gap: var(--seat-gap) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: nowrap !important; /* mantén una sola línea; el scroll del contenedor se activará si falta espacio */
+}
+
+/* Fuerza visibilidad y tamaño mínimo de cada asiento para que no desaparezcan */
+.seat,
+.seat-empty {
+  flex: 0 0 var(--seat-size) !important;
+  width: var(--seat-size) !important;
+  height: var(--seat-size) !important;
+  min-width: calc(var(--seat-size) * 0.5) !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Asegura que el SVG siempre se muestre */
+.seat-svg { display: block !important; pointer-events: none; }
+
+/* Mantener la pantalla amplia pero contenida por el recuadro */
+.screen {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* pequeño arreglo para evitar que inputs queden invisibles o sin área clicable */
+.seat input {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0 !important;
+  z-index: 2 !important;
+}
+
+/* Asegura que cada col-label tenga exactamente el mismo ancho que cada seat */
+.col-label {
+  box-sizing: border-box;
+  flex: 0 0 var(--seat-size);
+  width: var(--seat-size);
+  min-width: var(--seat-size);
+}
+
+/* Confirma que asientos y placeholders comparten tamaño fijo */
+.seat, .seat-empty {
+  box-sizing: border-box;
+  flex: 0 0 var(--seat-size);
+  width: var(--seat-size);
+  min-width: var(--seat-size);
+}
+
+/* Contenedor de pantalla: centrado y con max-width calculable */
+.screen-wrapper { display: flex; justify-content: center; width: 100%; }
+.screen {
+  width: 100%;
+  max-width: none;        /* JS colocará el max-width correcto */
+  box-sizing: border-box;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* Asegura que la fila de números quede exactamente sobre la fila de asientos */
+.header-row .asientos-row,
+.seat-row .asientos-row {
+  display: flex;
+  gap: var(--seat-gap);
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+/* Si la pantalla es muy angosta, permitir que el mapa mantenga integridad (scroll dentro del recuadro) */
+.map-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.map-inner { min-width: 0; box-sizing: border-box; }
+
+/* Normalizar y eliminar posibles offsets heredados */
+.header-row, .seat-row { padding-left: 0 !important; margin-left: 0 !important; box-sizing: border-box; }
+
+/* Asegura que la cabecera use el mismo flow que las filas */
+.header-row .asientos-row {
+  display: flex !important;
+  gap: var(--seat-gap) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+}
+
+/* Normaliza col-label para aceptar anchura dinámica desde JS */
+.header-row .col-label,
+.col-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  width: auto !important;       /* JS fijará el ancho exacto */
+  min-width: 0 !important;
 }
 </style>
 {% endblock %}

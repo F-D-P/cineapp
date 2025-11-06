@@ -44,6 +44,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import logging
 from peliculas.models import Sala
+from django.contrib import messages
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -248,6 +250,8 @@ def funciones_disponibles(request, pk):
         'form': form
     })
 
+logger = logging.getLogger(__name__)
+
 @staff_member_required
 def agregar_funcion(request, pelicula_id):
     pelicula = get_object_or_404(Pelicula, pk=pelicula_id)
@@ -258,14 +262,19 @@ def agregar_funcion(request, pelicula_id):
             nueva_funcion = form.save(commit=False)
             nueva_funcion.pelicula = pelicula
             nueva_funcion.save()
-            generar_asientos(nueva_funcion)  # genera los asientos automáticamente
+            generar_asientos(nueva_funcion)
+            messages.success(request, 'Función creada correctamente.')
             return redirect('funciones_disponibles', pk=pelicula.id)
+        else:
+            # Log y mensaje para ver el motivo
+            logger.warning(f"Errores al crear función: {form.errors.as_json()}")
+            messages.error(request, 'Revisa los campos: hay errores de validación.')
     else:
         form = FuncionForm()
 
     return render(request, 'peliculas/agregar_funcion.html', {
         'pelicula': pelicula,
-        'form': form
+        'form': form,
     })
 
 def mis_entradas(request):
@@ -573,3 +582,10 @@ def activar_sala(request, sala_id):
     sala.activa = True
     sala.save(update_fields=["activa"])
     return redirect("salas_admin")
+
+def clean_precio(self):
+    valor = self.cleaned_data.get('precio')
+    # Si llega como string con coma, normaliza
+    if isinstance(valor, str):
+        valor = valor.replace(',', '.')
+    return valor

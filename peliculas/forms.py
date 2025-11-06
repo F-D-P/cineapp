@@ -22,26 +22,29 @@ class PeliculaForm(forms.ModelForm):
 
 
 class FuncionForm(forms.ModelForm):
+    SALAS = [
+        ('Sala 1', 'Sala 1'),
+        ('Sala 2', 'Sala 2'),
+        ('Sala 3', 'Sala 3'),
+        ('Sala 4', 'Sala 4'),
+        ('Sala 5', 'Sala 5'),
+        ('Sala 6', 'Sala 6'),
+    ]
+
+    sala = forms.ChoiceField(choices=SALAS, widget=forms.Select(attrs={'class': 'form-select'}))
+
     class Meta:
         model = Funcion
         fields = ['fecha', 'hora', 'sala', 'capacidad', 'precio', 'formato', 'idioma', 'lleno']
         widgets = {
             'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'hora': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
-            'sala': forms.Select(attrs={'class': 'form-select'}),
-            'capacidad': forms.NumberInput(attrs={'class': 'form-control'}),
-            'precio': forms.NumberInput(attrs={'class': 'form-control'}),
+            'hora': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time', 'step': '60'}),
+            'capacidad': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'step': '1'}),
+            'precio': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
             'formato': forms.Select(attrs={'class': 'form-select'}),
             'idioma': forms.Select(attrs={'class': 'form-select'}),
             'lleno': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['sala'] = forms.ModelChoiceField(
-            queryset=Sala.objects.filter(activa=True),
-            widget=forms.Select(attrs={'class': 'form-select'})
-        )
 
 
 class PuntuacionForm(forms.ModelForm):
