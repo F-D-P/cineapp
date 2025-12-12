@@ -1,568 +1,684 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Luz Cámara Acción</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Luz Cámara Acción</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css"
+    />
 
-<!-- 🎨 Estilos base y contraste por modo -->
-<style>
-  :root {
-    --bg-light: #ffffff;
-    --text-dark: #111111;
-    --text-light: #f0f0f0;
-    --accent-green: #27ae60;
-    --accent-green-dark: #1f8a45;
-    --muted-border: rgba(0,0,0,0.06);
-  }
+    <!-- 🎨 Estilos base y contraste por modo -->
+    <style>
+      :root {
+        --bg-light: #ffffff;
+        --text-dark: #111111;
+        --text-light: #f0f0f0;
+        --accent-green: #27ae60;
+        --accent-green-dark: #1f8a45;
+        --muted-border: rgba(0, 0, 0, 0.06);
+      }
 
-  html, body {
-    height: 100%;
-    margin: 0;
-    overflow-x: hidden; /* evita scroll horizontal */
-  }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        overflow-x: hidden; /* evita scroll horizontal */
+      }
 
-  body {
-    font-family: 'Poppins', sans-serif;
-    font-size: 16px;
-    background-color: var(--bg-light);
-    color: var(--text-dark);
-    transition: background-color .25s ease, color .25s ease;
-  }
+      body {
+        font-family: "Poppins", sans-serif;
+        font-size: 16px;
+        background-color: var(--bg-light);
+        color: var(--text-dark);
+        transition: background-color 0.25s ease, color 0.25s ease;
+      }
 
-  /* Modo oscuro base */
-  body.modo-oscuro {
-    background-color: #121212;
-    color: var(--text-light);
-  }
+      /* Modo oscuro base */
+      body.modo-oscuro {
+        background-color: #121212;
+        color: var(--text-light);
+      }
 
-  /* Elementos que cambian según modo */
-  .card,
-  .card-body,
-  .page-header,
-  .leyenda-asientos,
-  .screen {
-    transition: background-color .25s ease, color .25s ease, box-shadow .25s ease;
-  }
+      /* Elementos que cambian según modo */
+      .card,
+      .card-body,
+      .page-header,
+      .leyenda-asientos,
+      .screen {
+        transition: background-color 0.25s ease, color 0.25s ease,
+          box-shadow 0.25s ease;
+      }
 
-  /* 🔄 Invertido: modo claro = checkout negro */
-body:not(.modo-oscuro) .checkout-container {
-  background-color: #111 !important;
-  color: #f0f0f0 !important;
-  border: 1px solid rgba(0,0,0,0.4);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-  border-radius: 10px;
-}
+      /* 🔄 Invertido: modo claro = checkout negro */
+      body:not(.modo-oscuro) .checkout-container {
+        background-color: #111 !important;
+        color: #f0f0f0 !important;
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        border-radius: 10px;
+      }
 
-/* 🔄 Invertido: modo oscuro = checkout blanco */
-body.modo-oscuro .checkout-container {
-  background-color: #fff !important;
-  color: #111 !important;
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.35);
-  border-radius: 10px;
-}
+      /* 🔄 Invertido: modo oscuro = checkout blanco */
+      body.modo-oscuro .checkout-container {
+        background-color: #fff !important;
+        color: #111 !important;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+        border-radius: 10px;
+      }
 
-  /* 🔄 Invertido: modo claro = cards negras */
-  body:not(.modo-oscuro) .card,
-  body:not(.modo-oscuro) .card-body,
-  body:not(.modo-oscuro) .leyenda-asientos,
-  body:not(.modo-oscuro) .screen,
-  body:not(.modo-oscuro) .page-header {
-    background-color: #111 !important;
-    color: #f0f0f0 !important;
-    border: 1px solid rgba(0,0,0,0.4);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-    border-radius: 10px;
-  }
+      /* 🔄 Invertido: modo claro = cards negras */
+      body:not(.modo-oscuro) .card,
+      body:not(.modo-oscuro) .card-body,
+      body:not(.modo-oscuro) .leyenda-asientos,
+      body:not(.modo-oscuro) .screen,
+      body:not(.modo-oscuro) .page-header {
+        background-color: #111 !important;
+        color: #f0f0f0 !important;
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        border-radius: 10px;
+      }
 
-  /* 🔄 Invertido: modo oscuro = cards blancas */
-  body.modo-oscuro .card,
-  body.modo-oscuro .card-body,
-  body.modo-oscuro .leyenda-asientos,
-  body.modo-oscuro .screen,
-  body.modo-oscuro .page-header {
-    background-color: #fff !important;
-    color: #111 !important;
-    border: 1px solid rgba(255,255,255,0.2);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.35);
-    border-radius: 10px;
-  }
+      /* 🔄 Invertido: modo oscuro = cards blancas */
+      body.modo-oscuro .card,
+      body.modo-oscuro .card-body,
+      body.modo-oscuro .leyenda-asientos,
+      body.modo-oscuro .screen,
+      body.modo-oscuro .page-header {
+        background-color: #fff !important;
+        color: #111 !important;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+        border-radius: 10px;
+      }
 
-  h1, h2, .page-title {
-    font-weight: 700;
-    margin: 0 0 .5rem 0;
-  }
+      h1,
+      h2,
+      .page-title {
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+      }
 
-  .card a, .card .btn {
-    color: inherit !important;
-  }
+      .card a,
+      .card .btn {
+        color: inherit !important;
+      }
 
-  .confirmar-btn {
-    background-color: var(--accent-green);
-    color: #fff;
-    border-radius: 10px;
-    padding: .65rem 1.2rem;
-    font-weight: 700;
-    border: 1px solid rgba(0,0,0,0.06);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-    transition: background-color .15s ease, transform .08s ease;
-  }
-  .confirmar-btn:hover {
-    background-color: var(--accent-green-dark);
-    transform: translateY(-2px);
-  }
+      .confirmar-btn {
+        background-color: var(--accent-green);
+        color: #fff;
+        border-radius: 10px;
+        padding: 0.65rem 1.2rem;
+        font-weight: 700;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+        transition: background-color 0.15s ease, transform 0.08s ease;
+      }
+      .confirmar-btn:hover {
+        background-color: var(--accent-green-dark);
+        transform: translateY(-2px);
+      }
 
-  #mensaje-error {
-    background: rgba(255,235,235,1);
-    color: #b00020;
-    border: 1px solid rgba(176,0,32,0.18);
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-weight: 600;
-    margin-top: 8px;
-  }
+      #mensaje-error {
+        background: rgba(255, 235, 235, 1);
+        color: #b00020;
+        border: 1px solid rgba(176, 0, 32, 0.18);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        margin-top: 8px;
+      }
 
-  /* Mensajes de placeholder más visibles */
-  .section-empty {
-    font-weight: 600;
-    font-size: 1.1rem;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-top: 1rem;
-    display: inline-block;
-  }
-  body:not(.modo-oscuro) .section-empty {
-    background-color: #222;
-    color: #f8f8f8;
-  }
-  body.modo-oscuro .section-empty {
-    background-color: #eaeaea;
-    color: #111;
-  }
+      /* Mensajes de placeholder más visibles */
+      .section-empty {
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        display: inline-block;
+      }
+      body:not(.modo-oscuro) .section-empty {
+        background-color: #222;
+        color: #f8f8f8;
+      }
+      body.modo-oscuro .section-empty {
+        background-color: #eaeaea;
+        color: #111;
+      }
 
-  /* Ajustes responsivos mínimos */
-  @media (max-width: 576px) {
-    .navbar-brand { font-size: 1.15rem; }
-    .btn-lg { padding: .4rem .6rem; font-size: 1rem; }
-  }
+      /* Ajustes responsivos mínimos */
+      @media (max-width: 576px) {
+        .navbar-brand {
+          font-size: 1.15rem;
+        }
+        .btn-lg {
+          padding: 0.4rem 0.6rem;
+          font-size: 1rem;
+        }
+      }
 
-  /* Hero negro a ancho completo */
-  .hero-banner {
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    background-color: #000;
-    color: #fff;
-    padding: 2rem 1rem;
-    text-align: center;
-  }
-  .hero-banner .hero-content {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
+      /* Hero negro a ancho completo */
+      .hero-banner {
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        background-color: #000;
+        color: #fff;
+        padding: 2rem 1rem;
+        text-align: center;
+      }
+      .hero-banner .hero-content {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
 
-  /* Línea negra del control "ajustar tamaño de fuente" en modo oscuro */
-  body.modo-oscuro .font-size-control input[type="range"]::-webkit-slider-runnable-track {
-    background-color: #000;
-    height: 4px;
-  }
-  body.modo-oscuro .font-size-control input[type="range"]::-moz-range-track {
-    background-color: #000;
-    height: 4px;
-  }
-  body.modo-oscuro .font-size-control input[type="range"]::-ms-track {
-    background-color: #000;
-    height: 4px;
-    border-color: transparent;
-    color: transparent;
-  }
+      /* Línea negra del control "ajustar tamaño de fuente" en modo oscuro */
+      body.modo-oscuro
+        .font-size-control
+        input[type="range"]::-webkit-slider-runnable-track {
+        background-color: #000;
+        height: 4px;
+      }
+      body.modo-oscuro
+        .font-size-control
+        input[type="range"]::-moz-range-track {
+        background-color: #000;
+        height: 4px;
+      }
+      body.modo-oscuro .font-size-control input[type="range"]::-ms-track {
+        background-color: #000;
+        height: 4px;
+        border-color: transparent;
+        color: transparent;
+      }
 
-  /* Estilos específicos para páginas de compra/asientos */
-  body.page-comprar .card,
-  body.page-comprar .screen,
-  body.page-comprar .leyenda-asientos,
-  body.page-comprar .card-body,
-  body.page-comprar .container,
-  body.page-comprar .page-header,
-  body.page-asientos .card,
-  body.page-asientos .screen,
-  body.page-asientos .leyenda-asientos,
-  body.page-asientos .card-body,
-  body.page-asientos .container,
-  body.page-asientos .page-header {
-    background-color: rgba(255,255,255,0.98);
-    color: #111;
-    border: 1px solid rgba(0,0,0,0.08);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    border-radius: 8px;
-  }
+      /* Estilos específicos para páginas de compra/asientos */
+      body.page-comprar .card,
+      body.page-comprar .screen,
+      body.page-comprar .leyenda-asientos,
+      body.page-comprar .card-body,
+      body.page-comprar .container,
+      body.page-comprar .page-header,
+      body.page-asientos .card,
+      body.page-asientos .screen,
+      body.page-asientos .leyenda-asientos,
+      body.page-asientos .card-body,
+      body.page-asientos .container,
+      body.page-asientos .page-header {
+        background-color: rgba(255, 255, 255, 0.98);
+        color: #111;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        border-radius: 8px;
+      }
 
-  body.page-comprar h1,
-  body.page-comprar h2,
-  body.page-comprar .page-title,
-  body.page-asientos h1,
-  body.page-asientos h2,
-  body.page-asientos .page-title {
-    color: #111 !important;
-    text-shadow: none !important;
-    font-weight: 700 !important;
-  }
+      body.page-comprar h1,
+      body.page-comprar h2,
+      body.page-comprar .page-title,
+      body.page-asientos h1,
+      body.page-asientos h2,
+      body.page-asientos .page-title {
+        color: #111 !important;
+        text-shadow: none !important;
+        font-weight: 700 !important;
+      }
 
-  body.page-comprar p,
-  body.page-comprar .lead,
-  body.page-comprar .fila-label,
-  body.page-comprar .col-label,
-  body.page-asientos p,
-  body.page-asientos .lead,
-  body.page-asientos .fila-label,
-  body.page-asientos .col-label {
-    color: #111 !important;
-    opacity: 1 !important;
-  }
+      body.page-comprar p,
+      body.page-comprar .lead,
+      body.page-comprar .fila-label,
+      body.page-comprar .col-label,
+      body.page-asientos p,
+      body.page-asientos .lead,
+      body.page-asientos .fila-label,
+      body.page-asientos .col-label {
+        color: #111 !important;
+        opacity: 1 !important;
+      }
 
-  body.page-comprar .btn,
-  body.page-comprar a,
-  body.page-asientos .btn,
-  body.page-asientos a {
-    color: #111 !important;
-  }
+      body.page-comprar .btn,
+      body.page-comprar a,
+      body.page-asientos .btn,
+      body.page-asientos a {
+        color: #111 !important;
+      }
 
-  body.page-comprar #mensaje-error,
-  body.page-asientos #mensaje-error {
-    background: rgba(255,235,235,1) !important;
-    color: #b00020 !important;
-    border: 1px solid rgba(176,0,32,0.18) !important;
-    padding: 8px 12px !important;
-    border-radius: 6px !important;
-  }
+      body.page-comprar #mensaje-error,
+      body.page-asientos #mensaje-error {
+        background: rgba(255, 235, 235, 1) !important;
+        color: #b00020 !important;
+        border: 1px solid rgba(176, 0, 32, 0.18) !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+      }
 
-  .seat-svg .seat-body { stroke-width: 0.8 !important; }
+      .seat-svg .seat-body {
+        stroke-width: 0.8 !important;
+      }
 
-  /* ✅ No afectar los colores de los asientos según modo */
-  /* Eliminamos el fill forzado global sobre .seat-body */
-  /* body:not(.modo-oscuro) .seat-svg .seat-body { ... } */
-  /* body.modo-oscuro .seat-svg .seat-body { ... } */
+      /* ✅ No afectar los colores de los asientos según modo */
+      /* Eliminamos el fill forzado global sobre .seat-body */
+      /* body:not(.modo-oscuro) .seat-svg .seat-body { ... } */
+      /* body.modo-oscuro .seat-svg .seat-body { ... } */
 
-  /* Leyenda: mantener colores */
-  .estado .asiento.libre { background-color: #27ae60 !important; }
-  .estado .asiento.seleccionado { background-color: #3498db !important; }
-  .estado .asiento.ocupado { background-color: #e74c3c !important; }
+      /* Leyenda: mantener colores */
+      .estado .asiento.libre {
+        background-color: #27ae60 !important;
+      }
+      .estado .asiento.seleccionado {
+        background-color: #3498db !important;
+      }
+      .estado .asiento.ocupado {
+        background-color: #e74c3c !important;
+      }
 
-  /* Navbar */
-  .navbar .container-fluid {
-    background-color: #000;
-    padding: .4rem .8rem;
-    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
-    border-radius: 0; /* franja completa */
-  }
+      /* Navbar */
+      .navbar .container-fluid {
+        background-color: #000;
+        padding: 0.4rem 0.8rem;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+        border-radius: 0; /* franja completa */
+      }
 
-  /* Botón hamburguesa siempre blanco */
-  .navbar .btn {
-    border-color: #fff;
-    color: #fff;
-  }
+      /* Botón hamburguesa siempre blanco */
+      .navbar .btn {
+        border-color: #fff;
+        color: #fff;
+      }
 
-  /* Marca: solo texto amarillo, sin caja negra */
-  .navbar .navbar-brand-box {
-    background: none !important;
-    box-shadow: none !important;
-    margin: 0;
-    color: #ffc107 !important;
-  }
+      /* Marca: solo texto amarillo, sin caja negra */
+      .navbar .navbar-brand-box {
+        background: none !important;
+        box-shadow: none !important;
+        margin: 0;
+        color: #ffc107 !important;
+      }
 
-  /* Asegurar que la franja negra cubra desde arriba */
-  .navbar {
-    background-color: #000 !important;
-    padding-top: .25rem;
-    padding-bottom: .25rem;
-  }
+      /* Asegurar que la franja negra cubra desde arriba */
+      .navbar {
+        background-color: #000 !important;
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+      }
 
-  /* Cards e imágenes: mantener proporción y recorte elegante */
-  .card {
-    overflow: hidden;
-    height: auto; /* 🔑 la card se adapta al contenido */
-  }
-  .card-img-top {
-    width: 100%;
-    height: auto;        /* 🔑 la altura se ajusta a la imagen */
-    object-fit: contain; /* muestra la imagen completa sin recortarla */
-    background-color: #000; /* opcional, para rellenar si la imagen no ocupa todo */
-  }
+      /* Cards e imágenes: mantener proporción y recorte elegante */
+      .card {
+        overflow: hidden;
+        height: auto; /* 🔑 la card se adapta al contenido */
+      }
+      .card-img-top {
+        width: 100%;
+        height: auto; /* 🔑 la altura se ajusta a la imagen */
+        object-fit: contain; /* muestra la imagen completa sin recortarla */
+        background-color: #000; /* opcional, para rellenar si la imagen no ocupa todo */
+      }
 
-  /* Desactivar AOS si aplica */
-  [data-aos] {
-    opacity: 1 !important;
-    transform: none !important;
-  }
+      /* Desactivar AOS si aplica */
+      [data-aos] {
+        opacity: 1 !important;
+        transform: none !important;
+      }
 
-  .checkout-container {
-  max-width: 600px;
-  margin: auto;
-  padding: 2rem;
-  background-color: var(--bs-body-bg);
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
+      .checkout-container {
+        max-width: 600px;
+        margin: auto;
+        padding: 2rem;
+        background-color: var(--bs-body-bg);
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
 
-.payment-method h4 {
-  margin-bottom: 0.5rem;
-}
+      .payment-method h4 {
+        margin-bottom: 0.5rem;
+      }
 
-.mp-button-wrapper {
-  text-align: center;
-}
+      .mp-button-wrapper {
+        text-align: center;
+      }
 
-.checkout-container {
-  color: var(--bs-body-color); /* usa el color de texto adaptado al modo claro/oscuro */
-}
+      .checkout-container {
+        color: var(
+          --bs-body-color
+        ); /* usa el color de texto adaptado al modo claro/oscuro */
+      }
 
-.modo-invertido {
-  transition: background-color .25s ease, color .25s ease;
-}
+      .modo-invertido {
+        transition: background-color 0.25s ease, color 0.25s ease;
+      }
 
-body:not(.modo-oscuro) .modo-invertido {
-  color: #f0f0f0 !important;
-}
+      body:not(.modo-oscuro) .modo-invertido {
+        color: #f0f0f0 !important;
+      }
 
-body.modo-oscuro .modo-invertido {
-  color: #111 !important;
-}
+      body.modo-oscuro .modo-invertido {
+        color: #111 !important;
+      }
 
-/* 🎨 Adaptar texto de cards al modo visual */
-body:not(.modo-oscuro) .card-text {
-  color: #f0f0f0 !important;
-}
+      /* 🎨 Adaptar texto de cards al modo visual */
+      body:not(.modo-oscuro) .card-text {
+        color: #f0f0f0 !important;
+      }
 
-body.modo-oscuro .card-text {
-  color: #111 !important;
-}
+      body.modo-oscuro .card-text {
+        color: #111 !important;
+      }
 
-/* 🎨 Adaptar text-muted también */
-body:not(.modo-oscuro) .text-muted {
-  color: rgba(255, 255, 255, 0.7) !important;
-}
+      /* 🎨 Adaptar text-muted también */
+      body:not(.modo-oscuro) .text-muted {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
 
-body.modo-oscuro .text-muted {
-  color: rgba(0, 0, 0, 0.7) !important;
-}
-.modo-invertido i.fas.fa-clock {
-  color: #27ae60;
-}
-/* Estrellas en modo claro */
-body:not(.modo-oscuro) .star-rating label {
-  color: #ccc;
-}
-body:not(.modo-oscuro) .star-rating input:checked ~ label,
-body:not(.modo-oscuro) .star-rating label:hover,
-body:not(.modo-oscuro) .star-rating label:hover ~ label {
-  color: gold;
-}
+      body.modo-oscuro .text-muted {
+        color: rgba(0, 0, 0, 0.7) !important;
+      }
+      .modo-invertido i.fas.fa-clock {
+        color: #27ae60;
+      }
+      /* Estrellas en modo claro */
+      body:not(.modo-oscuro) .star-rating label {
+        color: #ccc;
+      }
+      body:not(.modo-oscuro) .star-rating input:checked ~ label,
+      body:not(.modo-oscuro) .star-rating label:hover,
+      body:not(.modo-oscuro) .star-rating label:hover ~ label {
+        color: gold;
+      }
 
-/* Estrellas en modo oscuro */
-body.modo-oscuro .star-rating label {
-  color: #666;
-}
-body.modo-oscuro .star-rating input:checked ~ label,
-body.modo-oscuro .star-rating label:hover,
-body.modo-oscuro .star-rating label:hover ~ label {
-  color: #f1c40f;
-}
-</style>
-</head>
+      /* Estrellas en modo oscuro */
+      body.modo-oscuro .star-rating label {
+        color: #666;
+      }
+      body.modo-oscuro .star-rating input:checked ~ label,
+      body.modo-oscuro .star-rating label:hover,
+      body.modo-oscuro .star-rating label:hover ~ label {
+        color: #f1c40f;
+      }
+    </style>
+  </head>
 
-<body id="mainBody">
-  <nav class="navbar sticky-top" role="navigation" aria-label="Main navigation">
-    <div class="container-fluid d-flex align-items-center">
-      <button class="btn btn-outline-light btn-lg me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuLateral" aria-controls="menuLateral" aria-expanded="false" aria-label="Abrir menú">
-        ☰
-      </button>
+  <body id="mainBody">
+    <nav
+      class="navbar sticky-top"
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      <div class="container-fluid d-flex align-items-center">
+        <button
+          class="btn btn-outline-light btn-lg me-3"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#menuLateral"
+          aria-controls="menuLateral"
+          aria-expanded="false"
+          aria-label="Abrir menú"
+        >
+          ☰
+        </button>
 
-      <span class="navbar-brand navbar-brand-box mx-auto fs-3 fw-bold text-warning" role="img" aria-label="Luz Cámara Acción">🎬 Luz Cámara Acción</span>
-    </div>
-  </nav>
+        <span
+          class="navbar-brand navbar-brand-box mx-auto fs-3 fw-bold text-warning"
+          role="img"
+          aria-label="Luz Cámara Acción"
+          >🎬 ¡Luz, Cámara, Acción!</span
+        >
+      </div>
+    </nav>
 
-  <div class="offcanvas offcanvas-start" tabindex="-1" id="menuLateral" aria-labelledby="menuLateralLabel">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title" id="menuLateralLabel">🎬 Luz Cámara Acción</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
-    </div>
-    <div class="offcanvas-body">
-      <!-- ... dentro de offcanvas-body -->
-<ul class="nav flex-column">
-  {% if request.user.is_authenticated %}
-    <li class="nav-item mb-2">
-      <a class="btn btn-outline-light w-100 text-start" href="{% url 'inicio' %}">
-        <i class="fas fa-home me-2"></i> Inicio
-      </a>
-    </li>
+    <div
+      class="offcanvas offcanvas-start"
+      tabindex="-1"
+      id="menuLateral"
+      aria-labelledby="menuLateralLabel"
+    >
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="menuLateralLabel">
+          🎬 ¡Luz, Cámara, Acción!
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="offcanvas"
+          aria-label="Cerrar"
+        ></button>
+      </div>
+      <div class="offcanvas-body">
+        <!-- ... dentro de offcanvas-body -->
+        <ul class="nav flex-column">
+          {% if request.user.is_authenticated %}
+          <li class="nav-item mb-2">
+            <a
+              class="btn btn-outline-light w-100 text-start"
+              href="{% url 'inicio' %}"
+            >
+              <i class="fas fa-home me-2"></i> Inicio
+            </a>
+          </li>
 
-    {% if request.user.is_staff %}
-      <li class="nav-item mb-2">
-        <a class="btn btn-outline-light w-100 text-start" href="{% url 'agregar_pelicula' %}">
-          <i class="fas fa-plus-circle me-2"></i> Agregar
-        </a>
-      </li>
-    {% endif %}
+          {% if request.user.is_staff %}
+          <li class="nav-item mb-2">
+            <a
+              class="btn btn-outline-light w-100 text-start"
+              href="{% url 'agregar_pelicula' %}"
+            >
+              <i class="fas fa-plus-circle me-2"></i> Agregar
+            </a>
+          </li>
+          {% endif %} {% if not request.user.is_staff %}
+          <li class="nav-item mb-2">
+            <a
+              class="btn btn-outline-light w-100 text-start"
+              href="{% url 'mis_entradas' %}"
+            >
+              <i class="fas fa-list me-2"></i> Mis entradas
+            </a>
+          </li>
+          {% endif %}
 
-    {% if not request.user.is_staff %}
-      <li class="nav-item mb-2">
-        <a class="btn btn-outline-light w-100 text-start" href="{% url 'mis_entradas' %}">
-          <i class="fas fa-list me-2"></i> Mis entradas
-        </a>
-      </li>
-    {% endif %}
+          <li class="nav-item mb-2">
+            <a
+              class="btn btn-outline-light w-100 text-start"
+              href="{% url 'soporte' %}"
+            >
+              <i class="fas fa-envelope me-2"></i> Soporte
+            </a>
+          </li>
 
-    <li class="nav-item mb-2">
-      <a class="btn btn-outline-light w-100 text-start" href="{% url 'soporte' %}">
-        <i class="fas fa-envelope me-2"></i> Soporte
-      </a>
-    </li>
+          <hr class="bg-light my-3" />
 
-    <hr class="bg-light my-3">
+          <!-- Configuración -->
+          <button
+            class="btn btn-outline-light w-100 mb-2 text-start"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#configuracionCollapse"
+            aria-expanded="false"
+            aria-controls="configuracionCollapse"
+          >
+            <i class="fas fa-cog me-2"></i> Configuración
+          </button>
+          <div class="collapse" id="configuracionCollapse">
+            <div class="card card-body">
+              <div class="form-check form-switch mb-3">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="modoOscuroToggle"
+                  aria-label="Alternar modo oscuro"
+                />
+                <label class="form-check-label" for="modoOscuroToggle"
+                  >Modo oscuro</label
+                >
+              </div>
+              <div class="mb-3 font-size-control">
+                <label for="fuenteRange" class="form-label"
+                  >Tamaño de fuente</label
+                >
+                <input
+                  type="range"
+                  class="form-range"
+                  min="14"
+                  max="22"
+                  step="1"
+                  id="fuenteRange"
+                  aria-label="Tamaño de fuente"
+                />
+              </div>
+            </div>
+          </div>
 
-    <!-- Configuración -->
-    <button class="btn btn-outline-light w-100 mb-2 text-start" type="button"
-            data-bs-toggle="collapse" data-bs-target="#configuracionCollapse"
-            aria-expanded="false" aria-controls="configuracionCollapse">
-      <i class="fas fa-cog me-2"></i> Configuración
-    </button>
-    <div class="collapse" id="configuracionCollapse">
-      <div class="card card-body">
-        <div class="form-check form-switch mb-3">
-          <input class="form-check-input" type="checkbox" id="modoOscuroToggle" aria-label="Alternar modo oscuro">
-          <label class="form-check-label" for="modoOscuroToggle">Modo oscuro</label>
-        </div>
-        <div class="mb-3 font-size-control">
-          <label for="fuenteRange" class="form-label">Tamaño de fuente</label>
-          <input type="range" class="form-range" min="14" max="22" step="1" id="fuenteRange" aria-label="Tamaño de fuente">
-        </div>
+          <!-- 👇 separador fuera de la tarjeta -->
+          <li><hr class="dropdown-divider" /></li>
+
+          <!-- Cerrar sesión -->
+          <li class="nav-item mb-2 mt-2">
+            <form method="POST" action="{% url 'account_logout' %}">
+              {% csrf_token %}
+              <button
+                type="submit"
+                class="btn btn-outline-danger w-100 text-start"
+              >
+                <i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión
+              </button>
+            </form>
+          </li>
+          {% else %}
+          <li class="nav-item mb-2">
+            <a
+              class="btn btn-outline-light w-100 text-start"
+              href="{% url 'account_login' %}"
+            >
+              <i class="fas fa-sign-in-alt me-2"></i> Iniciar sesión
+            </a>
+          </li>
+          {% endif %}
+        </ul>
       </div>
     </div>
 
-    <!-- 👇 separador fuera de la tarjeta -->
-    <li><hr class="dropdown-divider"></li>
+    <main class="container mt-4">{% block content %} {% endblock %}</main>
 
-    <!-- Cerrar sesión -->
-    <li class="nav-item mb-2 mt-2">
-      <form method="POST" action="{% url 'account_logout' %}">{% csrf_token %}
-        <button type="submit" class="btn btn-outline-danger w-100 text-start">
-          <i class="fas fa-sign-out-alt me-2"></i> Cerrar sesión
-        </button>
-      </form>
-    </li>
-  {% else %}
-    <li class="nav-item mb-2">
-      <a class="btn btn-outline-light w-100 text-start" href="{% url 'account_login' %}">
-        <i class="fas fa-sign-in-alt me-2"></i> Iniciar sesión
-      </a>
-    </li>
-  {% endif %}
-</ul>
-    </div>
-  </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
 
-  <main class="container mt-4">
-    {% block content %}
-    {% endblock %}
-  </main>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const body = document.getElementById("mainBody");
+        const offcanvasEl = document.getElementById("menuLateral");
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+        // --- Modo oscuro ---
+        const toggle = document.getElementById("modoOscuroToggle");
+        if (toggle) {
+          try {
+            if (localStorage.getItem("modoOscuro") === "true") {
+              body.classList.add("modo-oscuro");
+              toggle.checked = true;
+            }
+          } catch (e) {}
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const body = document.getElementById('mainBody');
-    const offcanvasEl = document.getElementById('menuLateral');
-
-    // --- Modo oscuro ---
-    const toggle = document.getElementById('modoOscuroToggle');
-    if (toggle) {
-      try {
-        if (localStorage.getItem('modoOscuro') === 'true') {
-          body.classList.add('modo-oscuro');
-          toggle.checked = true;
+          toggle.addEventListener("change", () => {
+            const isDark = toggle.checked;
+            body.classList.toggle("modo-oscuro", isDark);
+            try {
+              localStorage.setItem("modoOscuro", isDark ? "true" : "false");
+            } catch (e) {}
+            syncOffcanvasForMode(isDark);
+          });
+        } else {
+          if (localStorage.getItem("modoOscuro") === "true")
+            body.classList.add("modo-oscuro");
         }
-      } catch (e) {}
 
-      toggle.addEventListener('change', () => {
-        const isDark = toggle.checked;
-        body.classList.toggle('modo-oscuro', isDark);
-        try { localStorage.setItem('modoOscuro', isDark ? 'true' : 'false'); } catch(e){}
-        syncOffcanvasForMode(isDark);
-      });
-    } else {
-      if (localStorage.getItem('modoOscuro') === 'true') body.classList.add('modo-oscuro');
-    }
-
-    // --- Tamaño de fuente ---
-    const fuenteRange = document.getElementById('fuenteRange');
-    if (fuenteRange) {
-      const fuenteGuardada = localStorage.getItem('fuente');
-      if (fuenteGuardada) {
-        body.style.fontSize = fuenteGuardada + 'px';
-        fuenteRange.value = fuenteGuardada;
-      }
-      fuenteRange.addEventListener('input', () => {
-        body.style.fontSize = fuenteRange.value + 'px';
-        try { localStorage.setItem('fuente', fuenteRange.value); } catch(e){}
-      });
-    }
-
-    // --- Sincronizar clases del offcanvas ---
-    function syncOffcanvasForMode(isDark){
-      if(!offcanvasEl) return;
-      offcanvasEl.classList.toggle('text-bg-dark', !!isDark);
-
-      offcanvasEl.querySelectorAll('.btn-outline-light, .btn-outline-dark').forEach(b => {
-        b.classList.toggle('btn-outline-light', !!isDark);
-        b.classList.toggle('btn-outline-dark', !isDark);
-      });
-
-      const closeBtn = offcanvasEl.querySelector('.btn-close');
-      if(closeBtn){
-        closeBtn.classList.toggle('btn-close-white', !!isDark);
-        closeBtn.classList.toggle('btn-close-dark', !isDark);
-      }
-    }
-    syncOffcanvasForMode(localStorage.getItem('modoOscuro') === 'true');
-
-    // --- Instancia de offcanvas ---
-    if (offcanvasEl) {
-      new bootstrap.Offcanvas(offcanvasEl, {
-        backdrop: true,
-        keyboard: true,
-        scroll: false
-      });
-    }
-
-    // --- Cierre con un solo click fuera ---
-    document.addEventListener('click', (event) => {
-      if (!offcanvasEl) return;
-      const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
-      if (bsOffcanvas && offcanvasEl.classList.contains('show')) {
-        if (!offcanvasEl.contains(event.target) && !event.target.closest('[data-bs-toggle="offcanvas"]')) {
-          bsOffcanvas.hide();
+        // --- Tamaño de fuente ---
+        const fuenteRange = document.getElementById("fuenteRange");
+        if (fuenteRange) {
+          const fuenteGuardada = localStorage.getItem("fuente");
+          if (fuenteGuardada) {
+            body.style.fontSize = fuenteGuardada + "px";
+            fuenteRange.value = fuenteGuardada;
+          }
+          fuenteRange.addEventListener("input", () => {
+            body.style.fontSize = fuenteRange.value + "px";
+            try {
+              localStorage.setItem("fuente", fuenteRange.value);
+            } catch (e) {}
+          });
         }
-      }
-    });
 
-    // --- Accesibilidad: devolver foco al botón hamburguesa ---
-    const toggleBtn = document.querySelector('[data-bs-target="#menuLateral"]');
-    if (offcanvasEl) {
-      offcanvasEl.addEventListener('hidden.bs.offcanvas', () => {
-        if (toggleBtn) toggleBtn.focus();
+        // --- Sincronizar clases del offcanvas ---
+        function syncOffcanvasForMode(isDark) {
+          if (!offcanvasEl) return;
+          offcanvasEl.classList.toggle("text-bg-dark", !!isDark);
+
+          offcanvasEl
+            .querySelectorAll(".btn-outline-light, .btn-outline-dark")
+            .forEach((b) => {
+              b.classList.toggle("btn-outline-light", !!isDark);
+              b.classList.toggle("btn-outline-dark", !isDark);
+            });
+
+          const closeBtn = offcanvasEl.querySelector(".btn-close");
+          if (closeBtn) {
+            closeBtn.classList.toggle("btn-close-white", !!isDark);
+            closeBtn.classList.toggle("btn-close-dark", !isDark);
+          }
+        }
+        syncOffcanvasForMode(localStorage.getItem("modoOscuro") === "true");
+
+        // --- Instancia de offcanvas ---
+        if (offcanvasEl) {
+          new bootstrap.Offcanvas(offcanvasEl, {
+            backdrop: true,
+            keyboard: true,
+            scroll: false,
+          });
+        }
+
+        // --- Cierre con un solo click fuera ---
+        document.addEventListener("click", (event) => {
+          if (!offcanvasEl) return;
+          const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
+          if (bsOffcanvas && offcanvasEl.classList.contains("show")) {
+            if (
+              !offcanvasEl.contains(event.target) &&
+              !event.target.closest('[data-bs-toggle="offcanvas"]')
+            ) {
+              bsOffcanvas.hide();
+            }
+          }
+        });
+
+        // --- Accesibilidad: devolver foco al botón hamburguesa ---
+        const toggleBtn = document.querySelector(
+          '[data-bs-target="#menuLateral"]'
+        );
+        if (offcanvasEl) {
+          offcanvasEl.addEventListener("hidden.bs.offcanvas", () => {
+            if (toggleBtn) toggleBtn.focus();
+          });
+        }
+
+        // --- AOS ---
+        AOS.init({ duration: 800, once: true });
       });
-    }
-
-    // --- AOS ---
-    AOS.init({ duration: 800, once: true });
-  });
-</script>
-</body>
+    </script>
+  </body>
 </html>

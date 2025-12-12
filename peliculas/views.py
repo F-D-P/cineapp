@@ -540,6 +540,88 @@ def mp_webhook(request):
 
     return JsonResponse({"error": "Método no permitido"}, status=405)
 
+# peliculas/views.py
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import mercadopago
+
+@csrf_exempt
+@require_POST
+@login_required
+def mp_card_payment(request, reserva_id):
+    reserva = get_object_or_404(Reserva, id=reserva_id, usuario=request.user)
+    sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
+
+    body = json.loads(request.body.decode("utf-8"))
+    token = body.get("token")                    # token del card brick
+    issuer_id = body.get("issuer_id")            # emisor (si aplica)
+    payment_method_id = body.get("payment_method_id")  # visa, master, etc.
+    installments = int(body.get("installments", 1))
+    payer = body.get("payer", {})                # name, email, identification
+
+    amount = float(reserva.funcion.precio) * int(reserva.cantidad)
+
+    payment_data = {
+        "transaction_amount": amount,
+        "token": token,
+        "description": f"Entradas {reserva.funcion.pelicula.titulo}",
+        "installments": installments,
+        "payment_method_id": payment_method_id,
+        "issuer_id": issuer_id,
+        "payer": {
+            "email": payer.get("email"),
+            "first_name": payer.get("first_name"),
+            "last_name": payer.get("last_name"),
+            "identification": {
+                "type": payer.get("identification", {}).get("type", "DNI"),
+                "number": payer.get("identification", {}).get("number"),
+            }
+        },
+        "capture": True,
+    }
+
+    try:
+        payment_response = sdk.payment().create(payment_data)
+        resp = payment_response.get("response", {})
+        status = resp.get("status")                    # approved | pending | rejected
+        status_detail = resp.get("status_detail")
+        mp_payment_id = str(resp.get("id") or "")
+
+        # Persistimos detalles
+        reserva.mp_payment_id = mp_payment_id
+        reserva.mp_status = status
+        reserva.mp_status_detail = status_detail
+        reserva.payment_method = "credit_card"
+        reserva.card_brand = payment_method_id
+        reserva.installments = installments
+        reserva.total_amount = amount
+
+        # Last4: viene dentro de additional_info si lo setearas; si no, lo omitimos
+        # reserva.card_last4 = resp.get("card", {}).get("last_four_digits")
+
+        # Estado interno
+        if status == "approved":
+            reserva.estado = "pagada"
+            # Generar QR (reutilizamos tu lógica)
+            qr_data = reserva.generar_qr_data()
+            qr_img = qrcode.make(qr_data)
+            buffer = BytesIO()
+            qr_img.save(buffer, format="PNG")
+            file_name = f"reserva_{reserva.id}.png"
+            reserva.qr_code.save(file_name, File(buffer), save=False)
+        elif status in ("pending", "in_process"):
+            reserva.estado = "pendiente"
+        else:
+            reserva.estado = "cancelada"
+
+        reserva.save()
+        return JsonResponse({"status": status, "payment_id": mp_payment_id})
+    except Exception as e:
+        logger.exception("Error en pago con tarjeta MP")
+        return JsonResponse({"error": str(e)}, status=400)
+
+
 
 @user_passes_test(lambda u: u.is_staff)
 def marcar_pagada(request, reserva_id):
@@ -589,3 +671,15 @@ def clean_precio(self):
     if isinstance(valor, str):
         valor = valor.replace(',', '.')
     return valor
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Reserva
+
+def pago_tarjeta(request, reserva_id):
+    reserva = get_object_or_404(Reserva, id=reserva_id)
+    if request.method == "POST":
+        metodo = request.POST.get("metodo")
+        # Aquí simulas que el pago fue exitoso
+        reserva.estado = "Pagado con " + metodo.capitalize()
+        reserva.save()
+        return redirect("confirmacion", reserva_id=reserva.id)

@@ -40,4 +40,10 @@ urlpatterns = [
     path('login/', lambda request: redirect('account_login')),  # ✅ Redirige a django-allauth
     path('signup/', views.signup, name='registro'),             # ✅ Vista personalizada si la tenés
     path('accounts/', include('allauth.urls')),                 # ✅ Incluye todo el flujo de allauth
+
+    # Tarjetas
+    path("pago_tarjeta/<int:reserva_id>/", views.pago_tarjeta, name="pago_tarjeta"),
+    path("mp_card_payment/<int:reserva_id>/", views.mp_card_payment, name="mp_card_payment"),
+
+
 ]

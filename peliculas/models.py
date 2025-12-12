@@ -127,6 +127,17 @@ class Reserva(models.Model):
     mp_payment_id = models.CharField(max_length=100, blank=True, null=True)
     mp_preference_id = models.CharField(max_length=100, blank=True, null=True)
 
+    # Campos de tarjetas
+    mp_preference_id = models.CharField(max_length=64, blank=True, null=True)
+    mp_payment_id = models.CharField(max_length=64, blank=True, null=True)
+    mp_status = models.CharField(max_length=32, blank=True, null=True)          # e.g. approved, pending, rejected
+    mp_status_detail = models.CharField(max_length=64, blank=True, null=True)   # e.g. accredited, cc_rejected_other_reason
+    payment_method = models.CharField(max_length=32, blank=True, null=True)     # e.g. credit_card
+    card_brand = models.CharField(max_length=32, blank=True, null=True)         # e.g. visa, master
+    card_last4 = models.CharField(max_length=4, blank=True, null=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    installments = models.PositiveIntegerField(blank=True, null=True)
+
     def __str__(self):
         return f"{self.usuario} - {self.funcion.pelicula.titulo} ({self.cantidad})"
 
