@@ -455,6 +455,13 @@ def checkout(request, reserva_id):
         return render(request, "peliculas/checkout.html", {"reserva": reserva})
 
 
+from .models import Entrada
+import random
+import string
+
+def generar_codigo():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+
 @login_required
 def pago_exitoso(request, reserva_id):
     reserva = get_object_or_404(Reserva, id=reserva_id, usuario=request.user)
@@ -476,7 +483,17 @@ def pago_exitoso(request, reserva_id):
     else:
         messages.info(request, "Esta reserva ya fue procesada anteriormente.")
 
+    # 👇 Generar entradas si no existen
+    if not reserva.entradas.exists():
+        for i in range(reserva.cantidad):
+            Entrada.objects.create(
+                reserva=reserva,
+                codigo=generar_codigo(),
+                asiento=f"A{i+1}"
+            )
+
     return render(request, "peliculas/pago_exitoso.html", {"reserva": reserva})
+
 
 @login_required
 def pago_fallido(request, reserva_id):

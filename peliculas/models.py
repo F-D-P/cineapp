@@ -165,3 +165,12 @@ class Sala(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+class Entrada(models.Model):
+    reserva = models.ForeignKey(Reserva, on_delete=models.CASCADE, related_name="entradas")
+    codigo = models.CharField(max_length=12, unique=True)
+    asiento = models.CharField(max_length=5)
+    creada = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Entrada {self.codigo} - {self.reserva.funcion}"
