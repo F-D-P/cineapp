@@ -26,6 +26,7 @@ class Pelicula(models.Model):
     fecha_estreno = models.DateField()
     sinopsis = models.TextField()
     imagen = models.ImageField(upload_to='peliculas/', blank=True, null=True)
+    trailer_url = models.URLField(blank=True, null=True)
     es_estreno = models.BooleanField(default=False)
     duracion = models.PositiveIntegerField(
     null=True,

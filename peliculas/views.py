@@ -208,12 +208,14 @@ def reservar_entrada(request):
     if request.method == 'POST':
         funcion_id = request.POST.get('funcion')
         cantidad = request.POST.get('cantidad')
+        tipo_usuario = request.POST.get('tipo_usuario', 'general')
         funcion = Funcion.objects.get(id=funcion_id)
 
         Reserva.objects.create(
             usuario=request.user,
             funcion=funcion,
-            cantidad=cantidad
+            cantidad=cantidad,
+            tipo_usuario=tipo_usuario
         )
         return redirect('mis_entradas')
 

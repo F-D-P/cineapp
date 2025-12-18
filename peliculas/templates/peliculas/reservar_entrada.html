@@ -1,9 +1,9 @@
-{% extends 'peliculas/base.html' %}
-{% block title %}Reservar entradas{% endblock %}
-
-{% block content %}
+{% extends 'peliculas/base.html' %} {% block title %}Reservar entradas{%
+endblock %} {% block content %}
 <div class="container mt-5" data-aos="fade-up">
-  <h2 class="fw-bold mb-4"><i class="fas fa-ticket-alt text-warning"></i> Reservar entradas</h2>
+  <h2 class="fw-bold mb-4">
+    <i class="fas fa-ticket-alt text-warning"></i> Reservar entradas
+  </h2>
   <form method="POST" action="">
     {% csrf_token %}
 
@@ -12,9 +12,10 @@
       <label for="funcion" class="form-label">Seleccioná una función</label>
       <select name="funcion" id="funcion" class="form-select" required>
         {% for funcion in funciones %}
-          <option value="{{ funcion.id }}">
-            {{ funcion.pelicula.titulo }} · {{ funcion.fecha }} · {{ funcion.hora }} · Sala {{ funcion.sala }}
-          </option>
+        <option value="{{ funcion.id }}">
+          {{ funcion.pelicula.titulo }} · {{ funcion.fecha }} · {{ funcion.hora
+          }} · Sala {{ funcion.sala }}
+        </option>
         {% endfor %}
       </select>
     </div>
@@ -22,10 +23,29 @@
     <!-- 🎟️ Cantidad de entradas -->
     <div class="mb-3">
       <label for="cantidad" class="form-label">Cantidad de entradas</label>
-      <input type="number" id="cantidad" name="cantidad" class="form-control" min="1" max="10" required>
+      <input
+        type="number"
+        id="cantidad"
+        name="cantidad"
+        class="form-control"
+        min="1"
+        max="10"
+        required
+      />
     </div>
 
-    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-check-circle"></i> Confirmar reserva</button>
+    <div class="mb-3">
+      <label for="tipo_usuario" class="form-label">Tipo de usuario</label>
+      <select name="tipo_usuario" id="tipo_usuario" class="form-select">
+        <option value="general">General</option>
+        <option value="jubilado">Jubilado</option>
+        <option value="estudiante">Estudiante</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">
+      <i class="fas fa-check-circle"></i> Confirmar reserva
+    </button>
   </form>
 </div>
 {% endblock %}

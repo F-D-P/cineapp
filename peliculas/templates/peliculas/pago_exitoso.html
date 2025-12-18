@@ -10,22 +10,16 @@
   <div class="card mt-4 p-4 shadow-lg bg-light text-dark">
     <h4 class="fw-bold">{{ reserva.funcion.pelicula.titulo }}</h4>
     <p>
-      <i class="fas fa-calendar-alt"></i> <strong>Función:</strong> {{
-      reserva.funcion.fecha|date:"d/m/Y" }} - {{ reserva.funcion.hora|time:"H:i"
+      📅 Función: Sala {{ reserva.funcion.sala }} · {{
+      reserva.funcion.fecha|date:"d/m/Y" }} {{ reserva.funcion.hora|time:"H:i"
       }}
     </p>
     <p>
-      <i class="fas fa-chair"></i> <strong>Asientos:</strong> {{
-      reserva.lista_asientos }}
+      💺 Asientos: {% for asiento in reserva.asientos.all %} {{ asiento.fila
+      }}{{ asiento.numero }}{% if not forloop.last %}, {% endif %} {% endfor %}
     </p>
-    <p>
-      <i class="fas fa-users"></i> <strong>Cantidad:</strong> {{
-      reserva.cantidad }}
-    </p>
-    <p>
-      <i class="fas fa-info-circle"></i> <strong>Estado:</strong> {{
-      reserva.estado|title }}
-    </p>
+    <p>🔢 Cantidad: {{ reserva.cantidad }}</p>
+    <p>⚫ Estado: {{ reserva.estado|title }}</p>
 
     {% if reserva.qr_code %}
     <div class="mt-4">
