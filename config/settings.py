@@ -1,7 +1,6 @@
 import environ
 from pathlib import Path
 import os
-from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -10,7 +9,7 @@ env = environ.Env(DEBUG=(bool, False))
 environ.Env.read_env(BASE_DIR / ".env")
 
 # Variables de entorno
-DEBUG = env("DEBUG", default=True)
+DEBUG = env("DEBUG", default=False)
 SECRET_KEY = env("SECRET_KEY", default="inseguro")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
@@ -123,7 +122,10 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+# Static files
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'peliculas' / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+

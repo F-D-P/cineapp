@@ -25,11 +25,9 @@
             <div class="card-body">
               <h4 class="card-title">{{ reserva.funcion.pelicula.titulo }}</h4>
               <p class="card-text">
-                <strong>🎬 Sala:</strong> {{ reserva.funcion.sala }}<br />
-                <strong>🗓️ Fecha:</strong> {{ reserva.funcion.fecha|date:"d/m/Y"
-                }}<br />
-                <strong>⏰ Hora:</strong> {{ reserva.funcion.hora|time:"H:i"
-                }}<br />
+                <strong>🎬 Sala:</strong> {{ reserva.funcion.sala }}<br/>
+                <strong>🗓️ Fecha:</strong> {{ reserva.funcion.fecha|date:"d/m/Y"}}<br/>
+                <strong>⏰ Hora:</strong> {{ reserva.funcion.hora|time:"H:i"}}<br/>
                 <strong>🪑 Asientos:</strong>
                 {% for asiento in reserva.asientos.all %} 
                 {{ asiento.fila }}{{asiento.numero }} {% if not forloop.last %}, {% endif %}
