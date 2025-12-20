@@ -1,4 +1,5 @@
-{% extends "peliculas/base.html" %} {% block content %}
+{% extends "peliculas/base.html" %}
+{% block content %}
 <div class="container mt-5 text-center" data-aos="fade-up">
   <h2 class="text-success fw-bold">
     <i class="fas fa-check-circle"></i> ¡Pago exitoso!
@@ -21,7 +22,28 @@
     <p>🔢 Cantidad: {{ reserva.cantidad }}</p>
     <p>⚫ Estado: {{ reserva.estado|title }}</p>
 
-    {% if reserva.qr_code %}
+    <table class="table table-bordered text-start bg-white shadow-sm">
+      <tbody>
+        <tr>
+          <th scope="row"><i class="fas fa-calendar-alt"></i> Función</th>
+          <td>{{ reserva.funcion.fecha|date:"d/m/Y" }} - {{ reserva.funcion.hora|time:"H:i" }}</td>
+        </tr>
+        <tr>
+          <th scope="row"><i class="fas fa-chair"></i> Asientos</th>
+          <td>{{ reserva.lista_asientos }}</td>
+        </tr>
+        <tr>
+          <th scope="row"><i class="fas fa-users"></i> Cantidad</th>
+          <td>{{ reserva.cantidad }}</td>
+        </tr>
+        <tr>
+          <th scope="row"><i class="fas fa-info-circle"></i> Estado</th>
+          <td>{{ reserva.estado|title }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    {% if reserva.qr_code and reserva.qr_code.url %}
     <div class="mt-4">
       <p class="fw-semibold">Presenta este código QR en la entrada:</p>
       <img
@@ -38,10 +60,7 @@
     <a href="{% url 'mis_entradas' %}" class="btn btn-outline-success btn-lg">
       <i class="fas fa-ticket-alt"></i> Ver mis reservas
     </a>
-    <a
-      href="{% url 'lista_peliculas' %}"
-      class="btn btn-outline-secondary btn-lg"
-    >
+    <a href="{% url 'inicio' %}" class="btn btn-outline-secondary btn-lg">
       <i class="fas fa-film"></i> Volver al catálogo
     </a>
   </div>

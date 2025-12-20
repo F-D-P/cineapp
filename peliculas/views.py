@@ -1,32 +1,57 @@
-# peliculas/views.py
+# ---------------------------
+# Rankings y página de inicio
+# ---------------------------
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse, reverse_lazy
-from django.contrib import messages
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.admin.views.decorators import staff_member_required
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.db.models import Q, Avg, Sum
-from django.utils import timezone
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+def top5_taquilla():
+    hoy = timezone.now().date()
+    lunes_actual = hoy - timezone.timedelta(days=hoy.weekday())
+    lunes_anterior = lunes_actual - timezone.timedelta(days=7)
 
-import mercadopago
-import qrcode
-import json
-import logging
-import random
-import string
-from io import BytesIO
-from django.core.files import File
+    reservas = (Reserva.objects
+        .filter(estado__in=['pagada', 'validada'],
+                fecha_creacion__gte=lunes_anterior,
+                fecha_creacion__lt=lunes_actual)
+        .values('funcion__pelicula__id', 'funcion__pelicula__titulo')
+        .annotate(total_vendido=Sum('cantidad'))
+        .order_by('-total_vendido')[:5])
+    return reservas
 
-from .models import Pelicula, Puntuacion, Funcion, Reserva, Asiento, Sala, Entrada
-from .forms import PeliculaForm, PuntuacionForm, FuncionForm
+def inicio(request):
+    genero = request.GET.get('genero')
+    query = request.GET.get('q')
+    generos_validos = [g[0] for g in Pelicula._meta.get_field('genero').choices]
+    catalogo = Pelicula.objects.filter(es_estreno=False)
 
-logger = logging.getLogger(__name__)
+    if genero in generos_validos:
+        catalogo = catalogo.filter(genero=genero)
+    if query:
+        catalogo = catalogo.filter(
+            Q(titulo__icontains=query) |
+            Q(genero__icontains=query) |
+            Q(director__icontains=query)
+        )
+
+    proximamente = Pelicula.objects.filter(es_estreno=True).order_by('fecha_estreno')[:5]
+
+    return render(request, 'peliculas/inicio.html', {
+        'catalogo': catalogo,
+        'proximamente': proximamente,
+        'top_taquilla': top5_taquilla(),
+        'genero_actual': genero,
+        'query': query,
+    })
+
+def buscar_pelicula(request):
+    query = request.GET.get('q', '')
+    resultados = Pelicula.objects.filter(
+        Q(titulo__icontains=query) |
+        Q(genero__icontains=query) |
+        Q(director__icontains=query)
+    )
+    return render(request, 'peliculas/buscar.html', {
+        'query': query,
+        'resultados': resultados,
+    })
 
 # ---------------------------
 # Rankings y página de inicio
@@ -101,7 +126,6 @@ def detalle_pelicula(request, pk):
     pelicula = get_object_or_404(Pelicula, id=pk)
     form = PuntuacionForm()
     voto_exitoso = False
-
     if request.method == 'POST':
         form = PuntuacionForm(request.POST)
         if form.is_valid():
@@ -109,9 +133,7 @@ def detalle_pelicula(request, pk):
             puntuacion.pelicula = pelicula
             puntuacion.save()
             voto_exitoso = True
-
     promedio = pelicula.promedio_puntuacion()
-
     return render(request, 'peliculas/detalle.html', {
         'pelicula': pelicula,
         'form': form,
@@ -354,7 +376,6 @@ def mp_webhook(request):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
     return JsonResponse({"error": "Método no permitido"}, status=405)
-
 
 # ---------------------------
 # Pago con tarjeta (Brick)

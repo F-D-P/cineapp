@@ -5,58 +5,113 @@
 {% block content %}
 <style>
   .card-hover {
-  transition: transform 0.3s ease;
-}
-.card-hover:hover {
-  transform: scale(1.05);
-}
+    transition: transform 0.3s ease;
+  }
+  .card-hover:hover {
+    transform: scale(1.05);
+  }
 </style>
 
 <div class="container mt-4">
 
-<!-- 🔍 Buscar película + filtro por género -->
-<section class="mb-5" data-aos="fade-down">
-  <h2 class="fw-semibold">Buscar película</h2>
-  <form method="GET" action="{% url 'inicio' %}" class="row g-3 align-items-end">
-    <div class="col-md-6">
-      <label for="id_q" class="form-label">Título, género o director</label>
-      <input type="text" name="q" id="id_q" class="form-control" value="{{ query|default:'' }}">
-    </div>
-    <div class="col-md-4">
-      <label for="id_genero" class="form-label">Filtrar por género</label>
-      <select name="genero" id="id_genero" class="form-select">
-        <option value="">🎬 Todos los géneros</option>
-        <option value="accion" {% if genero_actual == 'accion' %}selected{% endif %}>⚡ Acción</option>
-        <option value="comedia" {% if genero_actual == 'comedia' %}selected{% endif %}>😂 Comedia</option>
-        <option value="drama" {% if genero_actual == 'drama' %}selected{% endif %}>🎭 Drama</option>
-        <option value="terror" {% if genero_actual == 'terror' %}selected{% endif %}>👻 Terror</option>
-        <option value="aventura" {% if genero_actual == 'aventura' %}selected{% endif %}>🗺️ Aventura</option>
-        <option value="romance" {% if genero_actual == 'romance' %}selected{% endif %}>❤️ Romance</option>
-        <option value="ciencia_ficcion" {% if genero_actual == 'ciencia_ficcion' %}selected{% endif %}>🤖 Ciencia Ficción</option>
-        <option value="fantasia" {% if genero_actual == 'fantasia' %}selected{% endif %}>🧙 Fantasía</option>
-        <option value="documental" {% if genero_actual == 'documental' %}selected{% endif %}>📚 Documental</option>
-        <option value="musical" {% if genero_actual == 'musical' %}selected{% endif %}>🎶 Musical</option>
-        <option value="animacion" {% if genero_actual == 'animacion' %}selected{% endif %}>🎞️ Animación</option>
-        <option value="suspenso" {% if genero_actual == 'suspenso' %}selected{% endif %}>👁️ Suspenso</option>
-        <option value="historica" {% if genero_actual == 'historica' %}selected{% endif %}>🏛️ Histórica</option>
-        <option value="crimen" {% if genero_actual == 'crimen' %}selected{% endif %}>🕵️ Crimen</option>
-        <option value="misterio" {% if genero_actual == 'misterio' %}selected{% endif %}>🔍 Misterio</option>
-      </select>
-    </div>
-    <div class="col-md-2">
-      <button type="submit" class="btn btn-primary w-100">
-        <i class="fas fa-search"></i> Buscar
-      </button>
-    </div>
-  </form>
-</section>
+  <!-- 🔍 Buscar película + filtro por género -->
+  <section class="mb-5" data-aos="fade-down">
+    <h2 class="fw-semibold">Buscar película</h2>
+    <form method="GET" action="{% url 'inicio' %}" class="row g-3 align-items-end">
+      <div class="col-md-6">
+        <label for="id_q" class="form-label">Título, género o director</label>
+        <input type="text" name="q" id="id_q" class="form-control" value="{{ query|default:'' }}">
+      </div>
+      <div class="col-md-4">
+        <label for="id_genero" class="form-label">Filtrar por género</label>
+        <select name="genero" id="id_genero" class="form-select">
+          <option value="">🎬 Todos los géneros</option>
+          <option value="accion" {% if genero_actual == 'accion' %}selected{% endif %}>⚡ Acción</option>
+          <option value="comedia" {% if genero_actual == 'comedia' %}selected{% endif %}>😂 Comedia</option>
+          <option value="drama" {% if genero_actual == 'drama' %}selected{% endif %}>🎭 Drama</option>
+          <option value="terror" {% if genero_actual == 'terror' %}selected{% endif %}>👻 Terror</option>
+          <option value="aventura" {% if genero_actual == 'aventura' %}selected{% endif %}>🗺️ Aventura</option>
+          <option value="romance" {% if genero_actual == 'romance' %}selected{% endif %}>❤️ Romance</option>
+          <option value="ciencia_ficcion" {% if genero_actual == 'ciencia_ficcion' %}selected{% endif %}>🤖 Ciencia Ficción</option>
+          <option value="fantasia" {% if genero_actual == 'fantasia' %}selected{% endif %}>🧙 Fantasía</option>
+          <option value="documental" {% if genero_actual == 'documental' %}selected{% endif %}>📚 Documental</option>
+          <option value="musical" {% if genero_actual == 'musical' %}selected{% endif %}>🎶 Musical</option>
+          <option value="animacion" {% if genero_actual == 'animacion' %}selected{% endif %}>🎞️ Animación</option>
+          <option value="suspenso" {% if genero_actual == 'suspenso' %}selected{% endif %}>👁️ Suspenso</option>
+          <option value="historica" {% if genero_actual == 'historica' %}selected{% endif %}>🏛️ Histórica</option>
+          <option value="crimen" {% if genero_actual == 'crimen' %}selected{% endif %}>🕵️ Crimen</option>
+          <option value="misterio" {% if genero_actual == 'misterio' %}selected{% endif %}>🔍 Misterio</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="fas fa-search"></i> Buscar
+        </button>
+      </div>
+    </form>
+  </section>
 
-<!-- 🎬 Top 5 en cartelera -->
-<section class="mb-5" data-aos="fade-up">
-  <h2 class="fw-semibold text-center">Top 5 en cartelera</h2>
-  <div class="row">
-    {% if top_peliculas %}
-      {% for pelicula in top_peliculas %}
+  <!-- 🎟️ Top 5 por Taquilla (Semana) -->
+  <section class="mb-5" data-aos="fade-up">
+    <h2 class="fw-semibold text-center">Top 5 por Taquilla (Semana)</h2>
+    <div class="row">
+      {% if top_taquilla %}
+        {% for item in top_taquilla %}
+          <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow card-hover">
+              <div class="card-body">
+                <h5 class="card-title">{{ item.funcion__pelicula__titulo }}</h5>
+                <p class="card-text">
+                  🎟️ {{ item.total_vendido }} entradas vendidas esta semana
+                </p>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="section-empty text-center">No hay ventas registradas esta semana.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- 🎞️ Catálogo -->
+  <section class="mb-5" data-aos="fade-up">
+    <h2 class="fw-semibold text-center">Catálogo</h2>
+    <div class="row">
+      {% for pelicula in catalogo %}
+        <div class="col-md-3 mb-4">
+          <div class="card h-100 shadow card-hover">
+            <a href="{% url 'detalle_pelicula' pelicula.id %}">
+              {% if pelicula.imagen %}
+                <img src="{{ pelicula.imagen.url }}" class="card-img-top" alt="{{ pelicula.titulo }}">
+              {% else %}
+                <img src="{% static 'img/no-image.png' %}" class="card-img-top" alt="Sin imagen">
+              {% endif %}
+            </a>
+            <div class="card-body">
+              <h6 class="card-title">{{ pelicula.titulo }}</h6>
+              <p class="card-text text-muted">
+                {{ pelicula.genero }} · 
+                {% if pelicula.duracion %}
+                  {{ pelicula.duracion }} min
+                {% else %}
+                  Duración no disponible
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <p class="section-empty text-center">No hay películas en catálogo.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- 🆕 Próximamente -->
+  <section class="mb-5" data-aos="fade-up">
+    <h2 class="fw-semibold text-center">Próximamente</h2>
+    <div class="row">
+      {% for pelicula in proximamente %}
         <div class="col-md-4 mb-4">
           <div class="card h-100 shadow card-hover">
             <a href="{% url 'detalle_pelicula' pelicula.id %}">
@@ -69,94 +124,22 @@
             <div class="card-body">
               <h5 class="card-title">{{ pelicula.titulo }}</h5>
               <p class="card-text">
-  {{ pelicula.genero }} · 
-  {% if pelicula.duracion %}
-    {{ pelicula.duracion }} min
-  {% else %}
-    Duración no disponible
-  {% endif %}
-</p>
-              {% if pelicula.promedio_puntuacion %}
-                <p class="text-warning mb-0">
-                  <i class="fas fa-star"></i> {{ pelicula.promedio_puntuacion }} / 5
-                </p>
-              {% endif %}
+                {{ pelicula.genero }} · 
+                {% if pelicula.duracion %}
+                  {{ pelicula.duracion }} min
+                {% else %}
+                  Duración no disponible
+                {% endif %}
+                · Estrena el {{ pelicula.fecha_estreno|date:"d/m/Y" }}
+              </p>
             </div>
           </div>
         </div>
+      {% empty %}
+        <p class="section-empty text-center">No hay estrenos próximos.</p>
       {% endfor %}
-    {% else %}
-      <p class="section-empty text-center">🎬 Película no disponible</p>
-    {% endif %}
-  </div>
-</section>
-
-<!-- 🎞️ Catálogo -->
-<section class="mb-5" data-aos="fade-up">
-  <h2 class="fw-semibold text-center">Catálogo</h2>
-  <div class="row">
-    {% for pelicula in catalogo %}
-      <div class="col-md-3 mb-4">
-        <div class="card h-100 shadow card-hover">
-          <a href="{% url 'detalle_pelicula' pelicula.id %}">
-            {% if pelicula.imagen %}
-              <img src="{{ pelicula.imagen.url }}" class="card-img-top" alt="{{ pelicula.titulo }}">
-            {% else %}
-              <img src="{% static 'img/no-image.png' %}" class="card-img-top" alt="Sin imagen">
-            {% endif %}
-          </a>
-          <div class="card-body">
-            <h6 class="card-title">{{ pelicula.titulo }}</h6>
-            <p class="card-text text-muted">
-  {{ pelicula.genero }} · 
-  {% if pelicula.duracion %}
-    {{ pelicula.duracion }} min
-  {% else %}
-    Duración no disponible
-  {% endif %}
-</p>
-          </div>
-        </div>
-      </div>
-    {% empty %}
-      <p class="section-empty text-center">No hay películas en catálogo.</p>
-    {% endfor %}
-  </div>
-</section>
-
-<!-- 🆕 Próximamente -->
-<section class="mb-5" data-aos="fade-up">
-  <h2 class="fw-semibold text-center">Próximamente</h2>
-  <div class="row">
-    {% for pelicula in proximamente %}
-      <div class="col-md-4 mb-4">
-        <div class="card h-100 shadow card-hover">
-          <a href="{% url 'detalle_pelicula' pelicula.id %}">
-            {% if pelicula.imagen %}
-              <img src="{{ pelicula.imagen.url }}" class="card-img-top" alt="{{ pelicula.titulo }}">
-            {% else %}
-              <img src="{% static 'img/no-image.png' %}" class="card-img-top" alt="Sin imagen">
-            {% endif %}
-          </a>
-          <div class="card-body">
-            <h5 class="card-title">{{ pelicula.titulo }}</h5>
-            <p class="card-text">
-  {{ pelicula.genero }} · 
-  {% if pelicula.duracion %}
-    {{ pelicula.duracion }} min
-  {% else %}
-    Duración no disponible
-  {% endif %}
-  · Estrena el {{ pelicula.fecha_estreno|date:"d/m/Y" }}
-</p>
-          </div>
-        </div>
-      </div>
-    {% empty %}
-      <p class="section-empty text-center">No hay estrenos próximos.</p>
-    {% endfor %}
-  </div>
-</section>
+    </div>
+  </section>
 
 </div>
 {% endblock %}

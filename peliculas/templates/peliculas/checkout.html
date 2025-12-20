@@ -1,49 +1,49 @@
 <!-- peliculas/templates/peliculas/checkout.html -->
-{% extends "peliculas/base.html" %} {% load static %} {% block content %}
-<div class="container mt-5">
+{% extends "peliculas/base.html" %} 
+{% load static %} 
+{% block content %}
+<div class="container mt-5 text-center">
   <h3>Pago de tu reserva #{{ reserva.id }}</h3>
   <p>
-    {{ reserva.funcion.pelicula.titulo }} · {{
-    reserva.funcion.fecha|date:"d/m/Y" }} {{ reserva.funcion.hora|time:"H:i" }}
+    {{ reserva.funcion.pelicula.titulo }} · 
+    {{ reserva.funcion.fecha|date:"d/m/Y" }} {{ reserva.funcion.hora|time:"H:i" }}
   </p>
   <p>Total: ${{ reserva.funcion.precio }} x {{ reserva.cantidad }}</p>
 
-  <!-- Marcas visibles estilo Cinemark (clicables) -->
-  <div class="mb-3">
-    <div class="mb-3 d-flex flex-wrap gap-3 align-items-center">
-      <button class="btn btn-light border tarjeta-btn" data-tarjeta="visa">
-        <img src="{% static 'img/cards/visa.png' %}" alt="Visa" height="32" />
+  <!-- Métodos de pago más usados en Argentina -->
+  <div class="mb-4">
+    <div class="d-flex flex-wrap justify-content-center gap-4">
+      <button class="btn btn-light border metodo-btn btn-lg p-3" data-metodo="visa">
+        <img src="{% static 'img/cards/visa.png' %}" alt="Visa" height="48" />
       </button>
-      <button
-        class="btn btn-light border tarjeta-btn"
-        data-tarjeta="mastercard"
-      >
-        <img
-          src="{% static 'img/cards/mastercard.png' %}"
-          alt="Mastercard"
-          height="32"
-        />
+      <button class="btn btn-light border metodo-btn btn-lg p-3" data-metodo="mastercard">
+        <img src="{% static 'img/cards/mastercard.png' %}" alt="Mastercard" height="48" />
       </button>
-      <button class="btn btn-light border tarjeta-btn" data-tarjeta="amex">
-        <img
-          src="{% static 'img/cards/americanExpress.png' %}"
-          alt="American Express"
-          height="32"
-        />
+      <button class="btn btn-light border metodo-btn btn-lg p-3" data-metodo="amex">
+        <img src="{% static 'img/cards/americanExpress.png' %}" alt="American Express" height="48" />
       </button>
-      <button class="btn btn-light border tarjeta-btn" data-tarjeta="naranja">
-        <img
-          src="{% static 'img/cards/naranjaX.png' %}"
-          alt="Naranja X"
-          height="32"
-        />
+      <button class="btn btn-light border metodo-btn btn-lg p-3" data-metodo="naranjax">
+        <img src="{% static 'img/cards/naranjaX.png' %}" alt="Naranja X" height="48" />
+      </button>
+      <button class="btn btn-light border metodo-btn btn-lg p-3" data-metodo="cabal">
+        <img src="{% static 'img/cards/cabal.png' %}" alt="Cabal" height="48" />
+      </button>
+      <button class="btn btn-light border metodo-btn btn-lg p-3" data-metodo="mercadopago">
+        <img src="{% static 'img/cards/mercadopago.png' %}" alt="Mercado Pago" height="48" />
+      </button>
+      <button class="btn btn-light border metodo-btn btn-lg p-3" data-metodo="rapipago">
+        <img src="{% static 'img/cards/rapipago.png' %}" alt="Rapipago" height="48" />
+      </button>
+      <button class="btn btn-light border metodo-btn btn-lg p-3" data-metodo="pagofacil">
+        <img src="{% static 'img/cards/pagofacil.png' %}" alt="Pago Fácil" height="48" />
       </button>
     </div>
   </div>
 
-  <div id="formulario-pago" class="mt-4" style="display: none">
-    <h5 class="mb-3">Formulario de pago</h5>
-    <form id="form-pago" method="post">
+  <!-- Formulario de tarjeta -->
+  <div id="formulario-tarjeta" class="mt-4" style="display: none">
+    <h5 class="mb-3">Pago con tarjeta</h5>
+    <form id="form-pago-tarjeta" method="post">
       {% csrf_token %}
       <div class="mb-3">
         <label for="nombre" class="form-label">Nombre del titular</label>
@@ -51,36 +51,16 @@
       </div>
       <div class="mb-3">
         <label for="numero" class="form-label">Número de tarjeta</label>
-        <input
-          type="text"
-          class="form-control"
-          id="numero"
-          maxlength="19"
-          required
-        />
+        <input type="text" class="form-control" id="numero" maxlength="19" required />
       </div>
       <div class="row">
         <div class="col-md-6 mb-3">
-          <label for="vencimiento" class="form-label"
-            >Vencimiento (MM/AA)</label
-          >
-          <input
-            type="text"
-            class="form-control"
-            id="vencimiento"
-            placeholder="MM/AA"
-            required
-          />
+          <label for="vencimiento" class="form-label">Vencimiento (MM/AA)</label>
+          <input type="text" class="form-control" id="vencimiento" placeholder="MM/AA" required />
         </div>
         <div class="col-md-6 mb-3">
           <label for="cvv" class="form-label">CVV</label>
-          <input
-            type="text"
-            class="form-control"
-            id="cvv"
-            maxlength="4"
-            required
-          />
+          <input type="text" class="form-control" id="cvv" maxlength="4" required />
         </div>
       </div>
       <div class="mb-3">
@@ -104,135 +84,53 @@
     </form>
   </div>
 
-  <!-- Contenedor del Card Payment Brick -->
-  <div id="cardPaymentBrick_container" class="mb-4"></div>
+  <!-- Contenedor QR MercadoPago -->
+  <div id="formulario-qr" class="mt-4" style="display: none">
+    <h5 class="mb-3">Pago con MercadoPago QR</h5>
+    <p>Escaneá este código QR con tu app de MercadoPago:</p>
+    <div id="cardPaymentBrick_container" class="mb-4"></div>
+  </div>
+
+  <!-- Ticket Rapipago/Pago Fácil -->
+  <div id="formulario-ticket" class="mt-4" style="display: none">
+    <h5 class="mb-3">Pago en sucursal</h5>
+    <p>Presentá este comprobante en Rapipago o Pago Fácil:</p>
+    <div class="alert alert-info">
+      Reserva #{{ reserva.id }} · {{ reserva.funcion.pelicula.titulo }}<br>
+      Fecha: {{ reserva.funcion.fecha|date:"d/m/Y" }} {{ reserva.funcion.hora|time:"H:i" }}<br>
+      Total: ${{ reserva.funcion.precio }} x {{ reserva.cantidad }}
+    </div>
+  </div>
 
   <div id="paymentFeedback" class="alert" style="display: none"></div>
 
-  <a href="{% url 'mis_entradas' %}" class="btn btn-outline-secondary mt-3"
-    >Ver mis reservas</a
-  >
+  <a href="{% url 'mis_entradas' %}" class="btn btn-outline-secondary mt-3">Ver mis reservas</a>
 </div>
 
 <script src="https://sdk.mercadopago.com/js/v2"></script>
 <script>
-  document.querySelectorAll(".tarjeta-btn").forEach((btn) => {
+  document.querySelectorAll(".metodo-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const marca = btn.dataset.tarjeta;
-      alert(
-        `Seleccionaste ${marca.toUpperCase()}. Mostrando formulario de pago...`
-      );
-      // Acá podrías mostrar dinámicamente el formulario o inicializar el Brick si querés hacerlo por tarjeta
-    });
-  });
-</script>
-<script>
-  document.querySelectorAll(".tarjeta-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const marca = btn.dataset.tarjeta;
-      const formulario = document.getElementById("formulario-pago");
-      formulario.style.display = "block";
-      formulario.scrollIntoView({ behavior: "smooth" });
-    });
-  });
-</script>
-<script>
-  // Mostrar el formulario al seleccionar una tarjeta
-  document.querySelectorAll(".tarjeta-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const formulario = document.getElementById("formulario-pago");
-      formulario.style.display = "block";
-      formulario.scrollIntoView({ behavior: "smooth" });
-    });
-  });
+      const metodo = btn.dataset.metodo;
+      document.getElementById("formulario-tarjeta").style.display = "none";
+      document.getElementById("formulario-qr").style.display = "none";
+      document.getElementById("formulario-ticket").style.display = "none";
 
-  // Simular pago exitoso al enviar el formulario
-  document.getElementById("form-pago").addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    // Validación simple (podés mejorarla si querés)
-    const campos = ["nombre", "numero", "vencimiento", "cvv", "dni", "email"];
-    for (let id of campos) {
-      const campo = document.getElementById(id);
-      if (!campo.value.trim()) {
-        alert("Por favor completá todos los campos.");
-        campo.focus();
-        return;
+      if (["visa","mastercard","amex","naranjax","cabal"].includes(metodo)) {
+        document.getElementById("formulario-tarjeta").style.display = "block";
+      } else if (metodo === "mercadopago") {
+        document.getElementById("formulario-qr").style.display = "block";
+      } else if (["rapipago","pagofacil"].includes(metodo)) {
+        document.getElementById("formulario-ticket").style.display = "block";
       }
-    }
-
-    // Simulación de pago exitoso
-    alert("✅ Pago exitoso. ¡Gracias por tu compra!");
-    window.location.href = "{% url 'pago_exitoso' reserva.id %}";
+    });
   });
-</script>
 
-<script>
-  const mp = new MercadoPago("{{ PUBLIC_KEY }}", { locale: "es-AR" });
-
-  (async function () {
-    const bricksBuilder = mp.bricks();
-    const amount =
-      Number("{{ reserva.funcion.precio|floatformat:2 }}") *
-      Number("{{ reserva.cantidad }}");
-
-    const settings = {
-      initialization: {
-        amount: amount,
-      },
-      customization: {
-        paymentMethods: {
-          creditCard: "all", // habilita todas las marcas disponibles
-        },
-      },
-      callbacks: {
-        onReady: () => {},
-        onSubmit: async (cardFormData) => {
-          const resp = await fetch("{% url 'mp_card_payment' reserva.id %}", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              token: cardFormData.token,
-              issuer_id: cardFormData.issuer_id,
-              payment_method_id: cardFormData.payment_method_id,
-              installments: cardFormData.installments,
-              payer: cardFormData.payer,
-            }),
-          });
-          const data = await resp.json();
-          const fb = document.getElementById("paymentFeedback");
-          fb.style.display = "block";
-          fb.className = "alert";
-          if (data.status === "approved") {
-            fb.classList.add("alert-success");
-            fb.textContent = "Pago aprobado. ¡Tu QR ya está disponible!";
-            window.location.href = "{% url 'pago_exitoso' reserva.id %}";
-          } else if (
-            data.status === "pending" ||
-            data.status === "in_process"
-          ) {
-            fb.classList.add("alert-warning");
-            fb.textContent =
-              "Pago en proceso o pendiente. Te avisaremos cuando se confirme.";
-          } else {
-            fb.classList.add("alert-danger");
-            fb.textContent =
-              "Pago rechazado. Revisá los datos o probá con otra tarjeta.";
-            // opcional: redirigir a fallo
-            // window.location.href = "{% url 'pago_fallido' reserva.id %}";
-          }
-        },
-        onError: (error) => {
-          const fb = document.getElementById("paymentFeedback");
-          fb.style.display = "block";
-          fb.className = "alert alert-danger";
-          fb.textContent =
-            "Ocurrió un error al procesar el pago. Intentá nuevamente.";
-        },
-      },
-    };
-
-    bricksBuilder.create("cardPayment", "cardPaymentBrick_container", settings);
+  // Simular pago exitoso al enviar el formulario de tarjeta
+  document.getElementById("form-pago-tarjeta").addEventListener("submit", function (e) {
+    e.preventDefault();
+    alert("✅ Pago exitoso con tarjeta. ¡Gracias por tu compra!");
+    window.location.href = "{% url 'pago_exitoso' reserva.id %}";
   });
 </script>
 {% endblock %}

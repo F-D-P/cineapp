@@ -4,27 +4,54 @@
   <h2 class="text-danger fw-bold">
     <i class="fas fa-times-circle"></i> Pago fallido
   </h2>
-  <p class="lead">Tu reserva <strong>#{{ reserva.id }}</strong> no pudo completarse.</p>
+  <p class="lead">
+    Tu reserva <strong>#{{ reserva.id }}</strong> no pudo completarse.
+  </p>
 
-  <div class="alert alert-warning mt-4">
-    <p>El pago fue rechazado, cancelado o no se procesó correctamente.</p>
-    <p>Podés reintentar el pago desde el checkout o revisar tus reservas.</p>
+  <div class="card mt-4 p-4 shadow-lg bg-light text-dark">
+    <h4 class="fw-bold mb-4">{{ reserva.funcion.pelicula.titulo }}</h4>
+
+    <table class="table table-bordered text-start bg-white shadow-sm">
+      <tbody>
+        <tr>
+          <th scope="row"><i class="fas fa-calendar-alt"></i> Función</th>
+          <td>{{ reserva.funcion.fecha|date:"d/m/Y" }} - {{ reserva.funcion.hora|time:"H:i" }}</td>
+        </tr>
+        <tr>
+          <th scope="row"><i class="fas fa-chair"></i> Asientos</th>
+          <td>{{ reserva.lista_asientos }}</td>
+        </tr>
+        <tr>
+          <th scope="row"><i class="fas fa-users"></i> Cantidad</th>
+          <td>{{ reserva.cantidad }}</td>
+        </tr>
+        <tr>
+          <th scope="row"><i class="fas fa-info-circle"></i> Estado</th>
+          <td>{{ reserva.estado|title }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="alert alert-warning mt-4 text-start">
+      <p><strong>El pago fue rechazado, cancelado o no se procesó correctamente.</strong></p>
+      <p>Podés reintentar el pago desde el checkout o revisar tus reservas.</p>
+    </div>
+
+    {% if request.user.is_staff and error_mp %}
+      <div class="alert alert-danger mt-3 text-start">
+        <strong>Error técnico:</strong> {{ error_mp }}
+      </div>
+    {% endif %}
   </div>
 
-  {% if request.user.is_staff and error_mp %}
-    <div class="alert alert-danger mt-3">
-      <strong>Error técnico:</strong> {{ error_mp }}
-    </div>
-  {% endif %}
-
-  <div class="d-grid gap-3 mt-4">
+  <div class="d-grid gap-3 mt-5">
     <a href="{% url 'checkout' reserva.id %}" class="btn btn-outline-warning btn-lg">
       <i class="fas fa-redo-alt"></i> Reintentar pago
     </a>
-    <a href="{% url 'mis_reservas' %}" class="btn btn-outline-success btn-lg">
+    <a href="{% url 'mis_entradas' %}" class="btn btn-outline-success btn-lg">
       <i class="fas fa-ticket-alt"></i> Ver mis reservas
     </a>
-    <a href="{% url 'catalogo' %}" class="btn btn-outline-secondary btn-lg">
+    <a href="{% url 'inicio' %}" class="btn btn-outline-secondary btn-lg">
       <i class="fas fa-film"></i> Volver al catálogo
     </a>
   </div>
