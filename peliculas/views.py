@@ -30,6 +30,8 @@ import logging
 
 # Configuración global
 from django.conf import settings
+from django.shortcuts import render, get_object_or_404
+from .models import Pelicula, Funcion
 
 # Logger para registrar errores
 logger = logging.getLogger(__name__)
@@ -75,18 +77,6 @@ def inicio(request):
         'top_taquilla': top5_taquilla(),
         'genero_actual': genero,
         'query': query,
-    })
-
-def buscar_pelicula(request):
-    query = request.GET.get('q', '')
-    resultados = Pelicula.objects.filter(
-        Q(titulo__icontains=query) |
-        Q(genero__icontains=query) |
-        Q(director__icontains=query)
-    )
-    return render(request, 'peliculas/buscar.html', {
-        'query': query,
-        'resultados': resultados,
     })
 
 def buscar_pelicula(request):
@@ -207,55 +197,6 @@ class PeliculaDeleteView(DeleteView):
     success_url = reverse_lazy('inicio')
 
 # ---------------------------
-# CRUD de Funciones
-# ---------------------------
-
-@user_passes_test(lambda u: u.is_staff)
-def agregar_funcion(request, pelicula_id):
-    pelicula = get_object_or_404(Pelicula, pk=pelicula_id)
-    if request.method == "POST":
-        form = FuncionForm(request.POST)
-        if form.is_valid():
-            funcion = form.save(commit=False)
-            funcion.pelicula = pelicula
-            funcion.save()
-            generar_asientos(funcion)  # ✅ genera los asientos automáticamente
-            messages.success(request, "Función agregada correctamente.")
-            return redirect("funciones_pelicula", pk=pelicula.id)
-    else:
-        form = FuncionForm()
-    return render(request, "peliculas/agregar_funcion.html", {
-        "form": form,
-        "pelicula": pelicula
-    })
-
-
-@user_passes_test(lambda u: u.is_staff)
-def editar_funcion(request, pk):
-    funcion = get_object_or_404(Funcion, pk=pk)
-    if request.method == "POST":
-        form = FuncionForm(request.POST, instance=funcion)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Función editada correctamente.")
-            return redirect("funciones_pelicula", pk=funcion.pelicula.id)
-    else:
-        form = FuncionForm(instance=funcion)
-    return render(request, "peliculas/editar_funcion.html", {
-        "form": form,
-        "funcion": funcion
-    })
-
-
-@user_passes_test(lambda u: u.is_staff)
-def eliminar_funcion(request, pk):
-    funcion = get_object_or_404(Funcion, pk=pk)
-    pelicula_id = funcion.pelicula.id
-    funcion.delete()
-    messages.success(request, "Función eliminada correctamente.")
-    return redirect("funciones_pelicula", pk=pelicula_id)
-
-# ---------------------------
 # Funciones y reservas
 # ---------------------------
 
@@ -335,17 +276,6 @@ def funciones_pelicula(request, pk):
         'pelicula': pelicula,
         'funciones': funciones,
         'form': form
-    })
-
-from django.shortcuts import render, get_object_or_404
-from .models import Pelicula, Funcion
-
-def funciones_disponibles(request, pk):
-    pelicula = get_object_or_404(Pelicula, pk=pk)
-    funciones = Funcion.objects.filter(pelicula=pelicula).order_by('fecha', 'hora')
-    return render(request, 'peliculas/funciones_disponibles.html', {
-        'pelicula': pelicula,
-        'funciones': funciones,
     })
 
 # ---------------------------
