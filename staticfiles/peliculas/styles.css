@@ -1,0 +1,94 @@
+/* 🎬 Estilo general */
+body {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  background-color: #fff;
+  color: #111;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.modo-oscuro {
+  background-color: #121212;
+  color: #f0f0f0;
+}
+
+/* 🃏 Cards de películas */
+.pelicula-card {
+  width: 300px;
+  max-width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  transition: transform 0.2s ease;
+  background-color: #111;
+  color: #f0f0f0;
+}
+
+.pelicula-card:hover {
+  transform: translateY(-4px);
+}
+
+.pelicula-card img {
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+  background-color: #000;
+}
+
+.pelicula-card .card-body {
+  padding: 1rem;
+  background-color: inherit;
+  color: inherit;
+}
+
+/* 🏆 Insignia Top */
+.pelicula-card .top-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #ffc107;
+  color: #111;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* 🌙 Adaptación al modo oscuro */
+body.modo-oscuro .pelicula-card {
+  background-color: #fff;
+  color: #111;
+}
+
+body.modo-oscuro .top-badge {
+  background-color: #ffeb3b;
+  color: #000;
+}
+
+/* 📱 Responsive */
+@media (max-width: 576px) {
+  .pelicula-card {
+    width: 100%;
+  }
+}
+
+/* 🎛️ Panel de configuración */
+#configuracionCollapse .card-body {
+  background-color: #1e1e1e;
+  color: #f0f0f0;
+  border-radius: 8px;
+}
+
+body.modo-oscuro #configuracionCollapse .card-body {
+  background-color: #fff;
+  color: #111;
+}
+
+/* 🎚️ Slider de fuente */
+.font-size-control input[type="range"] {
+  width: 100%;
+  accent-color: #27ae60;
+}
