@@ -16,9 +16,9 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import Q, Sum
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 
 # Extras
-from django.utils import timezone
 from io import BytesIO
 from django.core.files import File
 import qrcode
@@ -27,6 +27,12 @@ import random
 import string
 import mercadopago
 import logging
+
+# Configuración global
+from django.conf import settings
+
+# Logger para registrar errores
+logger = logging.getLogger(__name__)
 
 # ---------------------------
 # Rankings y página de inicio
@@ -69,6 +75,18 @@ def inicio(request):
         'top_taquilla': top5_taquilla(),
         'genero_actual': genero,
         'query': query,
+    })
+
+def buscar_pelicula(request):
+    query = request.GET.get('q', '')
+    resultados = Pelicula.objects.filter(
+        Q(titulo__icontains=query) |
+        Q(genero__icontains=query) |
+        Q(director__icontains=query)
+    )
+    return render(request, 'peliculas/buscar.html', {
+        'query': query,
+        'resultados': resultados,
     })
 
 def buscar_pelicula(request):
