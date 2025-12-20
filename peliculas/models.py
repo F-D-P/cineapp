@@ -29,9 +29,9 @@ class Pelicula(models.Model):
     trailer_url = models.URLField(blank=True, null=True)
     es_estreno = models.BooleanField(default=False)
     duracion = models.PositiveIntegerField(
-    null=True,
-    blank=True,
-    help_text="Duración en minutos"
+        null=True,
+        blank=True,
+        help_text="Duración en minutos"
     )
 
     def promedio_puntuacion(self):
@@ -66,7 +66,7 @@ class Funcion(models.Model):
     pelicula = models.ForeignKey(Pelicula, on_delete=models.CASCADE, related_name='funciones')
     fecha = models.DateField()
     hora = models.TimeField()
-    sala = models.CharField(max_length=50, choices=SALAS)  # 👈 ahora con choices
+    sala = models.CharField(max_length=50, choices=SALAS)
     capacidad = models.PositiveIntegerField(default=100)
 
     precio = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
@@ -87,11 +87,28 @@ class Funcion(models.Model):
     lleno = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.pelicula.titulo} - {self.fecha} {self.hora} - Sala {self.sala}"
+        return f"{self.pelicula.titulo} - {self.fecha} {self.hora} - {self.sala}"
+    
+    @property
+    def es_miercoles(self):
+        return self.fecha.weekday() == 2
+    
+    @property
+    def cantidad_ocupados(self):
+        return self.asientos.filter(estado='ocupado').count()
+
+    @property
+    def porcentaje_ocupacion(self):
+        total = self.asientos.count()
+        if total == 0:
+            return 0
+        return round((self.cantidad_ocupados / total) * 100)
+
+
 class Asiento(models.Model):
     funcion = models.ForeignKey(Funcion, on_delete=models.CASCADE, related_name='asientos')
-    fila = models.CharField(max_length=1)  # A, B, C...
-    numero = models.IntegerField()         # 1, 2, 3...
+    fila = models.CharField(max_length=1)
+    numero = models.IntegerField()
     estado = models.CharField(max_length=10, choices=[
         ('libre', 'Libre'),
         ('ocupado', 'Ocupado'),
@@ -102,12 +119,6 @@ class Asiento(models.Model):
         return f"{self.fila}{self.numero} - {self.estado}"
 
 
-from django.db import models
-from django.contrib.auth.models import User
-
-from django.db import models
-from django.contrib.auth.models import User
-
 class Reserva(models.Model):
     ESTADOS = [
         ('pendiente', 'Pendiente'),
@@ -116,25 +127,32 @@ class Reserva(models.Model):
         ('validada', 'Validada'),
     ]
 
+    PAYMENT_CHOICES = [
+        ('visa', 'Visa'),
+        ('mastercard', 'MasterCard'),
+        ('amex', 'American Express'),
+        ('naranjax', 'NaranjaX'),
+        ('cabal', 'Cabal'),
+        ('mercadopago', 'MercadoPago (QR)'),
+        ('rapipago', 'Rapipago'),
+        ('pagofacil', 'Pago Fácil'),
+    ]
+
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     funcion = models.ForeignKey('Funcion', on_delete=models.CASCADE)
     cantidad = models.PositiveIntegerField()
-    asientos = models.ManyToManyField('Asiento', blank=True)  # varios asientos en una sola reserva
+    asientos = models.ManyToManyField('Asiento', blank=True)
     estado = models.CharField(max_length=10, choices=ESTADOS, default='pendiente')
-    qr_code = models.ImageField(upload_to='qr/', blank=True, null=True)  # QR generado tras el pago
+    qr_code = models.ImageField(upload_to='qr/', blank=True, null=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
-    # Campos extra para integrar con MercadoPago
-    mp_payment_id = models.CharField(max_length=100, blank=True, null=True)
-    mp_preference_id = models.CharField(max_length=100, blank=True, null=True)
-
-    # Campos de tarjetas
+    # Campos de integración con MercadoPago
     mp_preference_id = models.CharField(max_length=64, blank=True, null=True)
     mp_payment_id = models.CharField(max_length=64, blank=True, null=True)
-    mp_status = models.CharField(max_length=32, blank=True, null=True)          # e.g. approved, pending, rejected
-    mp_status_detail = models.CharField(max_length=64, blank=True, null=True)   # e.g. accredited, cc_rejected_other_reason
-    payment_method = models.CharField(max_length=32, blank=True, null=True)     # e.g. credit_card
-    card_brand = models.CharField(max_length=32, blank=True, null=True)         # e.g. visa, master
+    mp_status = models.CharField(max_length=32, blank=True, null=True)
+    mp_status_detail = models.CharField(max_length=64, blank=True, null=True)
+    payment_method = models.CharField(max_length=32, blank=True, null=True)
+    card_brand = models.CharField(max_length=32, blank=True, null=True)
     card_last4 = models.CharField(max_length=4, blank=True, null=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     installments = models.PositiveIntegerField(blank=True, null=True)
@@ -143,15 +161,12 @@ class Reserva(models.Model):
         return f"{self.usuario} - {self.funcion.pelicula.titulo} ({self.cantidad})"
 
     def lista_asientos(self):
-        """Devuelve los asientos en formato legible"""
-        return ", ".join([str(a) for a in self.asientos.all()])
+        return ", ".join([f"{a.fila}{a.numero}" for a in self.asientos.all()])
 
     def generar_qr_data(self):
-        """Datos mínimos que irán en el QR"""
         return f"RESERVA:{self.id}|FUNCION:{self.funcion.id}|ASIENTOS:{self.lista_asientos()}"
 
     def actualizar_estado_pago(self, status, payment_id=None):
-        """Actualiza el estado de la reserva según la respuesta de MercadoPago"""
         if status == "approved":
             self.estado = "pagada"
             self.mp_payment_id = payment_id
@@ -159,14 +174,16 @@ class Reserva(models.Model):
             self.estado = "cancelada"
         self.save()
 
+
 class Sala(models.Model):
     nombre = models.CharField(max_length=50)
     capacidad = models.IntegerField()
-    activa = models.BooleanField(default=True)  # Para desactivar sin eliminar
+    activa = models.BooleanField(default=True)
 
     def __str__(self):
         return self.nombre
-    
+
+
 class Entrada(models.Model):
     reserva = models.ForeignKey(Reserva, on_delete=models.CASCADE, related_name="entradas")
     codigo = models.CharField(max_length=12, unique=True)

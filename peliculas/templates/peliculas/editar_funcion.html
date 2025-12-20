@@ -9,7 +9,7 @@
 
   <div class="card bg-dark text-white shadow">
     <div class="card-body">
-      <form method="POST" class="row g-4">
+      <form method="POST" action="{% url 'editar_funcion' funcion.id %}" class="row g-4">
         {% csrf_token %}
 
         <div class="col-md-6">

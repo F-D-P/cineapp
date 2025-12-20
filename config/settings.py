@@ -11,7 +11,7 @@ environ.Env.read_env(BASE_DIR / ".env")
 # Variables de entorno
 DEBUG = env("DEBUG", default=False)
 SECRET_KEY = env("SECRET_KEY", default="inseguro")
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 
 # MercadoPago
 MP_ACCESS_TOKEN = env("MP_ACCESS_TOKEN")

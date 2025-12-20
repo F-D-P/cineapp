@@ -46,7 +46,6 @@ class FuncionForm(forms.ModelForm):
             'lleno': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
-
 class PuntuacionForm(forms.ModelForm):
     class Meta:
         model = Puntuacion

@@ -1,67 +1,59 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Pelicula, Funcion, Reserva
-from django.views.generic.edit import CreateView
-from django.urls import reverse_lazy
-from .forms import PeliculaForm
-from django.views.generic.edit import UpdateView
-from django.views.generic.edit import DeleteView
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from django.db.models import Q
-from django.db.models import Avg
-from django.shortcuts import render
-from django.db.models import Avg
-from django.utils import timezone
-from .forms import PuntuacionForm
-from .models import Pelicula, Puntuacion
-from django.contrib.auth.forms import UserCreationForm
-from .forms import FuncionForm
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Avg
-from .models import Reserva, Asiento 
-from django.contrib.admin.views.decorators import staff_member_required
-
 # peliculas/views.py
-from django.db.models import Q, Avg
-from django.utils import timezone
-from django.shortcuts import render
-from .models import Pelicula
-import mercadopago
-from django.conf import settings
-from django.urls import reverse
-import qrcode
-from io import BytesIO
-from django.core.files import File
-from django.shortcuts import get_object_or_404, render
-from django.contrib.auth.decorators import login_required
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse, reverse_lazy
 from django.contrib import messages
-from django.urls import reverse
-from django.conf import settings
-from .models import Reserva
-import json
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.admin.views.decorators import staff_member_required
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.db.models import Q, Avg, Sum
+from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+import mercadopago
+import qrcode
+import json
 import logging
-from peliculas.models import Sala
-from django.contrib import messages
-import logging
+import random
+import string
+from io import BytesIO
+from django.core.files import File
+
+from .models import Pelicula, Puntuacion, Funcion, Reserva, Asiento, Sala, Entrada
+from .forms import PeliculaForm, PuntuacionForm, FuncionForm
 
 logger = logging.getLogger(__name__)
 
+# ---------------------------
+# Rankings y página de inicio
+# ---------------------------
+
+def top5_taquilla():
+    hoy = timezone.now().date()
+    lunes_actual = hoy - timezone.timedelta(days=hoy.weekday())
+    lunes_anterior = lunes_actual - timezone.timedelta(days=7)
+
+    reservas = (Reserva.objects
+        .filter(estado__in=['pagada', 'validada'],
+                fecha_creacion__gte=lunes_anterior,
+                fecha_creacion__lt=lunes_actual)
+        .values('funcion__pelicula__id', 'funcion__pelicula__titulo')
+        .annotate(total_vendido=Sum('cantidad'))
+        .order_by('-total_vendido')[:5])
+    return reservas
 
 def inicio(request):
     genero = request.GET.get('genero')
     query = request.GET.get('q')
-
     generos_validos = [g[0] for g in Pelicula._meta.get_field('genero').choices]
-
-    # Catálogo: películas ya estrenadas/no-estreno (ajusta según tu lógica)
     catalogo = Pelicula.objects.filter(es_estreno=False)
 
     if genero in generos_validos:
         catalogo = catalogo.filter(genero=genero)
-
     if query:
         catalogo = catalogo.filter(
             Q(titulo__icontains=query) |
@@ -69,27 +61,31 @@ def inicio(request):
             Q(director__icontains=query)
         )
 
-    # Próximamente: próximas (puedes mantener tu lógica o filtrar por fecha futura)
     proximamente = Pelicula.objects.filter(es_estreno=True).order_by('fecha_estreno')[:5]
-    # Si preferís por fecha futura:
-    # proximamente = Pelicula.objects.filter(fecha_estreno__gt=timezone.now()).order_by('fecha_estreno')[:5]
-
-    # Top 5 por promedio de puntuación
-    top_peliculas = Pelicula.objects.annotate(
-        promedio=Avg('puntuaciones__valor')
-    ).filter(promedio__isnull=False).order_by('-promedio')[:5]
-
-    if not top_peliculas.exists():
-        top_peliculas = catalogo.order_by('-id')[:5]
 
     return render(request, 'peliculas/inicio.html', {
         'catalogo': catalogo,
         'proximamente': proximamente,
-        'top_peliculas': top_peliculas,
+        'top_taquilla': top5_taquilla(),
         'genero_actual': genero,
         'query': query,
     })
 
+def buscar_pelicula(request):
+    query = request.GET.get('q', '')
+    resultados = Pelicula.objects.filter(
+        Q(titulo__icontains=query) |
+        Q(genero__icontains=query) |
+        Q(director__icontains=query)
+    )
+    return render(request, 'peliculas/buscar.html', {
+        'query': query,
+        'resultados': resultados,
+    })
+
+# ---------------------------
+# CRUD Películas
+# ---------------------------
 
 def agregar_pelicula(request):
     if request.method == 'POST':
@@ -140,11 +136,72 @@ class PeliculaDeleteView(DeleteView):
     template_name = 'peliculas/confirmar_eliminacion.html'
     success_url = reverse_lazy('inicio')
 
+# ---------------------------
+# Funciones y reservas
+# ---------------------------
+
+def generar_asientos(funcion):
+    filas = ['A','B','C','D','E','F','G']
+    for fila in filas:
+        for numero in range(0, 11):  # 0..10
+            funcion.asientos.create(fila=fila, numero=numero)
+
+@login_required
+def reservar_entrada(request):
+    funciones = Funcion.objects.select_related('pelicula').order_by('fecha', 'hora')
+    if request.method == 'POST':
+        funcion_id = request.POST.get('funcion')
+        cantidad = request.POST.get('cantidad')
+        funcion = get_object_or_404(Funcion, id=funcion_id)
+        Reserva.objects.create(
+            usuario=request.user,
+            funcion=funcion,
+            cantidad=cantidad,
+            estado="pendiente"
+        )
+        return redirect('mis_entradas')
+    return render(request, 'peliculas/reservar_entrada.html', {'funciones': funciones})
+
+@login_required
+def seleccionar_asientos(request, funcion_id):
+    funcion = get_object_or_404(Funcion, id=funcion_id)
+    filas = ['A','B','C','D','E','F']
+    columnas = list(range(1, 11))
+    asientos = Asiento.objects.filter(funcion=funcion).order_by('fila', 'numero')
+    return render(request, 'peliculas/seleccionar_asientos.html', {
+        'funcion': funcion,
+        'filas': filas,
+        'columnas': columnas,
+        'asientos': asientos,
+    })
+
+@login_required
+def confirmar_reserva(request, funcion_id):
+    funcion = get_object_or_404(Funcion, id=funcion_id)
+    ids = request.POST.get('asientos_seleccionados', '').split(',')
+    asientos_confirmados = []
+    for asiento_id in ids:
+        if asiento_id:
+            asiento = get_object_or_404(Asiento, id=asiento_id, funcion=funcion)
+            if asiento.estado == 'libre':
+                asiento.estado = 'ocupado'
+                asiento.save()
+                asientos_confirmados.append(asiento)
+    if asientos_confirmados:
+        reserva = Reserva.objects.create(
+            usuario=request.user,
+            funcion=funcion,
+            cantidad=len(asientos_confirmados),
+            estado="pendiente"
+        )
+        reserva.asientos.set(asientos_confirmados)
+        return redirect("checkout", reserva_id=reserva.id)
+    return redirect("seleccionar_asientos", funcion_id=funcion.id)
+
 @user_passes_test(lambda u: u.is_staff)
 def funciones_pelicula(request, pk):
     pelicula = get_object_or_404(Pelicula, pk=pk)
     funciones = pelicula.funciones.all().order_by('fecha', 'hora')
-
     if request.method == 'POST':
         form = FuncionForm(request.POST)
         if form.is_valid():
@@ -155,243 +212,24 @@ def funciones_pelicula(request, pk):
             return redirect('funciones_pelicula', pk=pelicula.pk)
     else:
         form = FuncionForm()
-
     return render(request, 'peliculas/funciones_pelicula.html', {
         'pelicula': pelicula,
         'funciones': funciones,
         'form': form
     })
 
-def buscar_pelicula(request):
-    query = request.GET.get('q', '')
-    resultados = Pelicula.objects.filter(
-        Q(titulo__icontains=query) |
-        Q(genero__icontains=query) |
-        Q(director__icontains=query)
-    )
-    context = {
-        'query': query,
-        'resultados': resultados,
-    }
-    return render(request, 'peliculas/buscar.html', context)
-
-top_peliculas = Pelicula.objects.annotate(
-    promedio=Avg('puntuaciones__valor')
-).filter(promedio__isnull=False).order_by('-promedio')[:5]
-
-def promedio_puntuacion(self):
-    puntuaciones = self.puntuaciones.all()
-    if puntuaciones.exists():
-        return round(sum(p.valor for p in puntuaciones) / puntuaciones.count(), 1)
-    return None
-
-def signup(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('login')
-    else:
-        form = UserCreationForm()
-    return render(request, 'registration/signup.html', {'form': form})
-
-def soporte(request):
-    return render(request, 'peliculas/soporte.html')
-
-from .models import Funcion
-
-from .models import Funcion, Reserva
-
-def reservar_entrada(request):
-    funciones = Funcion.objects.select_related('pelicula').order_by('fecha', 'hora')
-
-    if request.method == 'POST':
-        funcion_id = request.POST.get('funcion')
-        cantidad = request.POST.get('cantidad')
-        tipo_usuario = request.POST.get('tipo_usuario', 'general')
-        funcion = Funcion.objects.get(id=funcion_id)
-
-        Reserva.objects.create(
-            usuario=request.user,
-            funcion=funcion,
-            cantidad=cantidad,
-            tipo_usuario=tipo_usuario
-        )
-        return redirect('mis_entradas')
-
-    return render(request, 'peliculas/reservar_entrada.html', {'funciones': funciones})
-
-def generar_asientos(funcion):
-    filas = ['A', 'B', 'C', 'D', 'E', 'F', 'G']  # ✅ Fila G agregada
-    asientos_por_fila = 11  # Incluye columna 0
-    for fila in filas:
-        for numero in range(0, asientos_por_fila):  # ✅ Desde 0 hasta 10
-            funcion.asientos.create(fila=fila, numero=numero)
-
-@login_required
-def funciones_disponibles(request, pk):
-    pelicula = get_object_or_404(Pelicula, pk=pk)
-    funciones = pelicula.funciones.order_by('fecha', 'hora')
-
-    form = None
-    if request.user.is_staff:
-        if request.method == 'POST':
-            form = FuncionForm(request.POST)
-            if form.is_valid():
-                nueva_funcion = form.save(commit=False)
-                nueva_funcion.pelicula = pelicula
-                nueva_funcion.save()
-                generar_asientos(nueva_funcion)
-                return redirect('funciones_disponibles', pk=pelicula.pk)
-        else:
-            form = FuncionForm()
-
-    return render(request, 'peliculas/funciones_disponibles.html', {
-        'pelicula': pelicula,
-        'funciones': funciones,
-        'form': form
-    })
-
-logger = logging.getLogger(__name__)
-
-@staff_member_required
-def agregar_funcion(request, pelicula_id):
-    pelicula = get_object_or_404(Pelicula, pk=pelicula_id)
-
-    if request.method == 'POST':
-        form = FuncionForm(request.POST)
-        if form.is_valid():
-            nueva_funcion = form.save(commit=False)
-            nueva_funcion.pelicula = pelicula
-            nueva_funcion.save()
-            generar_asientos(nueva_funcion)
-            messages.success(request, 'Función creada correctamente.')
-            return redirect('funciones_disponibles', pk=pelicula.id)
-        else:
-            # Log y mensaje para ver el motivo
-            logger.warning(f"Errores al crear función: {form.errors.as_json()}")
-            messages.error(request, 'Revisa los campos: hay errores de validación.')
-    else:
-        form = FuncionForm()
-
-    return render(request, 'peliculas/agregar_funcion.html', {
-        'pelicula': pelicula,
-        'form': form,
-    })
-
-def mis_entradas(request):
-    reservas = Reserva.objects.filter(usuario=request.user).select_related('funcion__pelicula').order_by('-id')
-    return render(request, 'peliculas/mis_entradas.html', {'reservas': reservas})
-
-@login_required
-def seleccionar_asientos(request, funcion_id):
-    funcion = get_object_or_404(Funcion, id=funcion_id)
-
-    filas = ['A','B','C','D','E','F']       # filas visibles
-    columnas = list(range(1, 11))           # 1..10 para cabecera
-
-    # Un solo queryset ordenado por fila y número (como “antes”)
-    asientos = (
-        Asiento.objects
-        .filter(funcion=funcion)
-        .order_by('fila', 'numero')
-    )
-
-    context = {
-        'funcion': funcion,
-        'filas': filas,
-        'columnas': columnas,
-        'asientos': asientos,
-    }
-    return render(request, 'peliculas/seleccionar_asientos.html', context)
-
-@login_required
-def confirmar_reserva(request, funcion_id):
-    funcion = get_object_or_404(Funcion, id=funcion_id)
-    ids = request.POST.get('asientos_seleccionados', '').split(',')
-
-    asientos_confirmados = []
-
-    for asiento_id in ids:
-        if asiento_id:
-            asiento = get_object_or_404(Asiento, id=asiento_id, funcion=funcion)
-            if asiento.estado == 'libre':
-                asiento.estado = 'ocupado'
-                asiento.save()
-                asientos_confirmados.append(asiento)
-
-    if asientos_confirmados:
-        reserva = Reserva.objects.create(
-            usuario=request.user,
-            funcion=funcion,
-            cantidad=len(asientos_confirmados),
-            estado="pendiente"
-        )
-        reserva.asientos.set(asientos_confirmados)
-
-        # 👇 Redirige al checkout
-        return redirect("checkout", reserva_id=reserva.id)
-
-    # Si no se seleccionaron asientos, volver a la selección
-    return redirect("seleccionar_asientos", funcion_id=funcion.id)
-
-@login_required
-def funciones_disponibles(request, pk):
-    pelicula = get_object_or_404(Pelicula, pk=pk)
-    funciones = pelicula.funciones.order_by('fecha', 'hora')
-
-    form = None
-    if request.user.is_staff:
-        if request.method == 'POST':
-            form = FuncionForm(request.POST)
-            if form.is_valid():
-                nueva_funcion = form.save(commit=False)
-                nueva_funcion.pelicula = pelicula
-                nueva_funcion.save()
-                generar_asientos(nueva_funcion)
-                return redirect('funciones_disponibles', pk=pelicula.pk)
-        else:
-            form = FuncionForm()
-
-    return render(request, 'peliculas/funciones_disponibles.html', {
-        'pelicula': pelicula,
-        'funciones': funciones,
-        'form': form
-    })
-
-@user_passes_test(lambda u: u.is_staff)
-def editar_funcion(request, pk):
-    funcion = get_object_or_404(Funcion, pk=pk)
-    if request.method == 'POST':
-        form = FuncionForm(request.POST, instance=funcion)
-        if form.is_valid():
-            form.save()
-            return redirect('funciones_pelicula', pk=funcion.pelicula.pk)
-    else:
-        form = FuncionForm(instance=funcion)
-    return render(request, 'peliculas/editar_funcion.html', {
-        'form': form,
-        'funcion': funcion
-    })
-
-@user_passes_test(lambda u: u.is_staff)
-def eliminar_funcion(request, pk):
-    funcion = get_object_or_404(Funcion, pk=pk)
-    pelicula_id = funcion.pelicula.pk
-    funcion.delete()
-    messages.success(request, "La función fue eliminada correctamente.")
-    return redirect('funciones_pelicula', pk=pelicula_id)
+# ---------------------------
+# Checkout y pagos
+# ---------------------------
 
 @login_required
 def checkout(request, reserva_id):
     reserva = get_object_or_404(Reserva, id=reserva_id, usuario=request.user)
 
-    # Validar que la reserva esté pendiente
     if reserva.estado != "pendiente":
         messages.warning(request, "Esta reserva ya fue procesada.")
         return render(request, "peliculas/checkout.html", {"reserva": reserva})
 
-    # Validar que la función tenga precio definido
     try:
         unit_price = float(reserva.funcion.precio)
         if unit_price <= 0:
@@ -403,14 +241,12 @@ def checkout(request, reserva_id):
     sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
 
     preference_data = {
-        "items": [
-            {
-                "title": f"Entrada {reserva.funcion.pelicula.titulo}",
-                "quantity": int(reserva.cantidad),
-                "currency_id": "ARS",
-                "unit_price": unit_price,
-            }
-        ],
+        "items": [{
+            "title": f"Entrada {reserva.funcion.pelicula.titulo}",
+            "quantity": int(reserva.cantidad),
+            "currency_id": "ARS",
+            "unit_price": unit_price,
+        }],
         "back_urls": {
             "success": request.build_absolute_uri(reverse("pago_exitoso", args=[reserva.id])),
             "failure": request.build_absolute_uri(reverse("pago_fallido", args=[reserva.id])),
@@ -421,14 +257,12 @@ def checkout(request, reserva_id):
 
     try:
         preference_response = sdk.preference().create(preference_data)
-        status = preference_response.get("status")
         resp = preference_response.get("response", {}) or {}
+        status = preference_response.get("status")
 
-        # Log útil para depurar en consola
         logger.info("MP preference create status=%s response=%s", status, resp)
 
         if status != 201:
-            # MercadoPago responde 201 en creación exitosa
             cause = resp.get("cause") or resp.get("message") or "Error desconocido"
             messages.error(request, f"No se pudo crear la preferencia de pago: {cause}")
             return render(request, "peliculas/checkout.html", {"reserva": reserva})
@@ -438,28 +272,22 @@ def checkout(request, reserva_id):
             messages.error(request, "La respuesta de MercadoPago no incluyó el ID de preferencia.")
             return render(request, "peliculas/checkout.html", {"reserva": reserva})
 
-        # Guardar el preference_id en la reserva
         reserva.mp_preference_id = preference_id
         reserva.save(update_fields=["mp_preference_id"])
 
-        return render(
-            request,
-            "peliculas/checkout.html",
-            {
-                "reserva": reserva,
-                "PUBLIC_KEY": settings.MP_PUBLIC_KEY,
-                "preference_id": preference_id,
-            },
-        )
+        return render(request, "peliculas/checkout.html", {
+            "reserva": reserva,
+            "PUBLIC_KEY": settings.MP_PUBLIC_KEY,
+            "preference_id": preference_id,
+        })
     except Exception as e:
         logger.exception("Error al crear preferencia MP")
         messages.error(request, f"Ocurrió un error al iniciar el pago: {e}")
         return render(request, "peliculas/checkout.html", {"reserva": reserva})
 
-
-from .models import Entrada
-import random
-import string
+# ---------------------------
+# Pago exitoso / fallido
+# ---------------------------
 
 def generar_codigo():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
@@ -474,18 +302,16 @@ def pago_exitoso(request, reserva_id):
         # Generar QR
         qr_data = reserva.generar_qr_data()
         qr_img = qrcode.make(qr_data)
-
         buffer = BytesIO()
         qr_img.save(buffer, format="PNG")
         file_name = f"reserva_{reserva.id}.png"
         reserva.qr_code.save(file_name, File(buffer), save=False)
-
         reserva.save()
         messages.success(request, "¡Pago confirmado! Tu entrada fue generada con QR.")
     else:
         messages.info(request, "Esta reserva ya fue procesada anteriormente.")
 
-    # 👇 Generar entradas si no existen
+    # Generar entradas si no existen
     if not reserva.entradas.exists():
         for i in range(reserva.cantidad):
             Entrada.objects.create(
@@ -496,7 +322,6 @@ def pago_exitoso(request, reserva_id):
 
     return render(request, "peliculas/pago_exitoso.html", {"reserva": reserva})
 
-
 @login_required
 def pago_fallido(request, reserva_id):
     reserva = get_object_or_404(Reserva, id=reserva_id, usuario=request.user)
@@ -506,21 +331,11 @@ def pago_fallido(request, reserva_id):
     messages.error(request, "El pago no se pudo completar. Intenta nuevamente.")
     return render(request, "peliculas/pago_fallido.html", {"reserva": reserva})
 
+# ---------------------------
 # Webhook de MercadoPago
-from django.http import JsonResponse
+# ---------------------------
 
-def mp_webhook(request):
-    """Recibe notificaciones de MercadoPago"""
-    if request.method == "POST":
-        data = request.POST or request.body
-        # Aquí deberías parsear el JSON que envía MP y actualizar la reserva
-        # Ejemplo simplificado:
-        # reserva = Reserva.objects.get(mp_preference_id=data["data"]["id"])
-        # reserva.actualizar_estado_pago(data["status"], data["id"])
-        return JsonResponse({"status": "ok"})
-    return JsonResponse({"error": "Método no permitido"}, status=405)
-
-@csrf_exempt  # MercadoPago no envía CSRF token
+@csrf_exempt
 def mp_webhook(request):
     """
     Recibe notificaciones de MercadoPago.
@@ -528,42 +343,22 @@ def mp_webhook(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body.decode("utf-8"))
-
-            # Ejemplo de payload simplificado:
-            # {
-            #   "id": 123456789,
-            #   "live_mode": true,
-            #   "type": "payment",
-            #   "date_created": "...",
-            #   "application_id": "...",
-            #   "user_id": "...",
-            #   "api_version": "v1",
-            #   "action": "payment.created",
-            #   "data": { "id": "987654321" }
-            # }
-
-            # En este punto deberías consultar la API de MP con el payment_id
             payment_id = data.get("data", {}).get("id")
 
             # Aquí podrías usar el SDK de MP para obtener el detalle del pago:
             # sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
             # payment_info = sdk.payment().get(payment_id)
             # status = payment_info["response"]["status"]
-            # preference_id = payment_info["response"]["order"]["id"]
 
-            # Para debug, mostramos lo recibido
             return render(request, "peliculas/mp_webhook.html", {"data": data})
-
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
-
     return JsonResponse({"error": "Método no permitido"}, status=405)
 
-# peliculas/views.py
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-import mercadopago
+
+# ---------------------------
+# Pago con tarjeta (Brick)
+# ---------------------------
 
 @csrf_exempt
 @require_POST
@@ -573,11 +368,11 @@ def mp_card_payment(request, reserva_id):
     sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
 
     body = json.loads(request.body.decode("utf-8"))
-    token = body.get("token")                    # token del card brick
-    issuer_id = body.get("issuer_id")            # emisor (si aplica)
-    payment_method_id = body.get("payment_method_id")  # visa, master, etc.
+    token = body.get("token")
+    issuer_id = body.get("issuer_id")
+    payment_method_id = body.get("payment_method_id")
     installments = int(body.get("installments", 1))
-    payer = body.get("payer", {})                # name, email, identification
+    payer = body.get("payer", {})
 
     amount = float(reserva.funcion.precio) * int(reserva.cantidad)
 
@@ -603,11 +398,10 @@ def mp_card_payment(request, reserva_id):
     try:
         payment_response = sdk.payment().create(payment_data)
         resp = payment_response.get("response", {})
-        status = resp.get("status")                    # approved | pending | rejected
+        status = resp.get("status")
         status_detail = resp.get("status_detail")
         mp_payment_id = str(resp.get("id") or "")
 
-        # Persistimos detalles
         reserva.mp_payment_id = mp_payment_id
         reserva.mp_status = status
         reserva.mp_status_detail = status_detail
@@ -616,13 +410,8 @@ def mp_card_payment(request, reserva_id):
         reserva.installments = installments
         reserva.total_amount = amount
 
-        # Last4: viene dentro de additional_info si lo setearas; si no, lo omitimos
-        # reserva.card_last4 = resp.get("card", {}).get("last_four_digits")
-
-        # Estado interno
         if status == "approved":
             reserva.estado = "pagada"
-            # Generar QR (reutilizamos tu lógica)
             qr_data = reserva.generar_qr_data()
             qr_img = qrcode.make(qr_data)
             buffer = BytesIO()
@@ -640,7 +429,9 @@ def mp_card_payment(request, reserva_id):
         logger.exception("Error en pago con tarjeta MP")
         return JsonResponse({"error": str(e)}, status=400)
 
-
+# ---------------------------
+# Administración
+# ---------------------------
 
 @user_passes_test(lambda u: u.is_staff)
 def marcar_pagada(request, reserva_id):
@@ -655,10 +446,8 @@ def reservas_funcion(request, pk):
     funcion = get_object_or_404(Funcion, pk=pk)
     estado = request.GET.get("estado")
     reservas = funcion.reserva_set.all()
-
     if estado in ["pendiente", "pagada", "cancelada"]:
         reservas = reservas.filter(estado=estado)
-
     return render(request, "peliculas/reservas_funcion.html", {
         "funcion": funcion,
         "reservas": reservas,
@@ -684,21 +473,40 @@ def activar_sala(request, sala_id):
     sala.save(update_fields=["activa"])
     return redirect("salas_admin")
 
+# ---------------------------
+# Extras
+# ---------------------------
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            usuario = form.save()
+            login(request, usuario)
+            messages.success(request, "Registro exitoso. ¡Bienvenido!")
+            return redirect('inicio')
+    else:
+        form = UserCreationForm()
+    return render(request, 'peliculas/signup.html', {'form': form})
+
+def soporte(request):
+    return render(request, 'peliculas/soporte.html')
+
+@login_required
+def mis_entradas(request):
+    reservas = Reserva.objects.filter(usuario=request.user).select_related('funcion__pelicula').order_by('-id')
+    return render(request, 'peliculas/mis_entradas.html', {'reservas': reservas})
+
 def clean_precio(self):
     valor = self.cleaned_data.get('precio')
-    # Si llega como string con coma, normaliza
     if isinstance(valor, str):
         valor = valor.replace(',', '.')
     return valor
-
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Reserva
 
 def pago_tarjeta(request, reserva_id):
     reserva = get_object_or_404(Reserva, id=reserva_id)
     if request.method == "POST":
         metodo = request.POST.get("metodo")
-        # Aquí simulas que el pago fue exitoso
         reserva.estado = "Pagado con " + metodo.capitalize()
         reserva.save()
         return redirect("confirmacion", reserva_id=reserva.id)

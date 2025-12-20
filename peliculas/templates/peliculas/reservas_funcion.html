@@ -15,7 +15,7 @@
   </div>
 
   {% if reservas %}
-    <table class="table table-dark table-bordered table-hover">
+    <table class="table table-dark table-bordered table-hover table-striped table-sm">
       <thead>
         <tr>
           <th>Usuario</th>
@@ -58,12 +58,13 @@
             </td>
             <td>
               {% if reserva.estado == "pendiente" %}
-                <form method="POST" action="{% url 'marcar_pagada' reserva.id %}" onsubmit="return confirm('¿Estás seguro de que querés marcar esta reserva como pagada?');">
-  {% csrf_token %}
-  <button type="submit" class="btn btn-sm btn-success">
-    <i class="fas fa-check"></i> Marcar como pagada
-  </button>
-</form>
+                <form method="POST" action="{% url 'marcar_pagada' reserva.id %}" 
+                      onsubmit="return confirm('¿Estás seguro de que querés marcar esta reserva como pagada?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-success">
+                    <i class="fas fa-check"></i> Marcar como pagada
+                  </button>
+                </form>
               {% else %}
                 <span class="text-muted">—</span>
               {% endif %}

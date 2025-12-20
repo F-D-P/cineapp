@@ -1,0 +1,33 @@
+{% extends 'peliculas/base.html' %}
+{% block title %}Eliminar función{% endblock %}
+
+{% block content %}
+<div class="container mt-5" data-aos="fade-up">
+  <h2 class="text-danger fw-bold mb-4">
+    <i class="fas fa-trash-alt me-2"></i> Eliminar función
+  </h2>
+
+  <div class="card bg-dark text-white shadow">
+    <div class="card-body">
+      <p class="mb-4">
+        ¿Estás seguro de que querés eliminar la función de 
+        <strong>{{ funcion.pelicula.titulo }}</strong> 
+        programada para el <strong>{{ funcion.fecha|date:"d/m/Y" }}</strong> 
+        a las <strong>{{ funcion.hora|time:"H:i" }}</strong> en la sala <strong>{{ funcion.sala }}</strong>?
+      </p>
+
+      <form method="POST" action="{% url 'borrar_funcion' funcion.id %}">
+        {% csrf_token %}
+        <div class="d-flex justify-content-between mt-4">
+          <button type="submit" class="btn btn-danger btn-lg">
+            <i class="fas fa-trash-alt me-1"></i> Sí, eliminar
+          </button>
+          <a href="{% url 'funciones_pelicula' funcion.pelicula.id %}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-arrow-left me-1"></i> Cancelar
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
