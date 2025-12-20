@@ -1,3 +1,33 @@
+# Django genéricas (CBV)
+from django.views.generic import CreateView, UpdateView, DeleteView
+
+# Modelos y formularios
+from .models import Pelicula, Reserva, Funcion, Asiento, Entrada, Sala
+from .forms import PeliculaForm, PuntuacionForm, FuncionForm
+
+# Utilidades de Django
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from django.db.models import Q, Sum
+from django.urls import reverse, reverse_lazy
+
+# Extras
+from django.utils import timezone
+from io import BytesIO
+from django.core.files import File
+import qrcode
+import json
+import random
+import string
+import mercadopago
+import logging
+
 # ---------------------------
 # Rankings y página de inicio
 # ---------------------------
